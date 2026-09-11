@@ -1,0 +1,77 @@
+flowchart TD
+    Start((Inicio))
+    End((Fin))
+
+    subgraph Lane_Usuario["👤 Usuario / Telegram"]
+        A1[Usuario escribe mensaje<br/>en Telegram]
+        A9[Usuario recibe<br/>respuesta]
+    end
+
+    subgraph Lane_Bot["🤖 Bot Service"]
+        B1[Recibe webhook<br/>de Telegram]
+        B2{¿Usuario<br/>autorizado?}
+        B3[Responde<br/>'No autorizado']
+        B4[Arma contexto:<br/>historial + tool defs MCP]
+        B5[Ejecuta tool call<br/>vía MCP]
+        B6[Recibe resultado<br/>de la herramienta]
+        B7[Envía respuesta final<br/>a Telegram Bot API]
+    end
+
+    subgraph Lane_Gemini["✨ Gemini API"]
+        G1[Procesa prompt<br/>function calling]
+        G2{¿Necesita llamar<br/>una herramienta?}
+        G3[Genera respuesta<br/>directa]
+        G4[Genera respuesta<br/>en lenguaje natural]
+        G5[Pide aclaración<br/>al usuario]
+    end
+
+    subgraph Lane_MCP["🔌 MCP Server + Firefly III"]
+        M1[MCP traduce tool call<br/>a llamada REST]
+        M2{¿Datos válidos?<br/>monto / cuenta / categoría}
+        M3[Firefly III retorna<br/>error de validación]
+        M4[Firefly III ejecuta operación<br/>crear / consultar transacción]
+        M5[Firefly III retorna<br/>resultado a MCP]
+    end
+
+    subgraph Lane_DB["🗄️ Base de datos"]
+        D1[(INSERT / UPDATE<br/>transacción)]
+        D2[Confirma escritura]
+    end
+
+    Start --> A1
+    A1 --> B1
+    B1 --> B2
+    B2 -->|No| B3
+    B3 --> A9
+    B2 -->|Sí| B4
+    B4 --> G1
+    G1 --> G2
+    G2 -->|No: saludo / consulta simple| G3
+    G3 --> B7
+    G2 -->|Sí| B5
+    B5 --> M1
+    M1 --> M2
+    M2 -->|No| M3
+    M3 --> G5
+    G5 --> A9
+    M2 -->|Sí| M4
+    M4 --> D1
+    D1 --> D2
+    D2 --> M5
+    M5 --> B6
+    B6 --> G4
+    G4 --> B7
+    B7 --> A9
+    A9 --> End
+
+    classDef userLane fill:#fdf2f8,stroke:#db2777,color:#111
+    classDef botLane fill:#dbeafe,stroke:#2563eb,color:#111
+    classDef geminiLane fill:#fef3c7,stroke:#d97706,color:#111
+    classDef mcpLane fill:#dcfce7,stroke:#16a34a,color:#111
+    classDef dbLane fill:#e0e7ff,stroke:#4f46e5,color:#111
+
+    class A1,A9 userLane
+    class B1,B2,B3,B4,B5,B6,B7 botLane
+    class G1,G2,G3,G4,G5 geminiLane
+    class M1,M2,M3,M4,M5 mcpLane
+    class D1,D2 dbLane

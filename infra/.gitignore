@@ -1,0 +1,4 @@
+# Secretos reales — nunca commitear
+.env
+*.env
+!.env.example

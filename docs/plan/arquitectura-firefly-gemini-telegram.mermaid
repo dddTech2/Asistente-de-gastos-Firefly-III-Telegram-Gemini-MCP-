@@ -1,0 +1,41 @@
+flowchart TB
+    subgraph Clients["👤 Clientes"]
+        TG[Usuario en Telegram]
+        AND[App Android<br/>Waterfly III / app propia]
+        NOTIF[Listener de notificaciones<br/>dentro de la App Android]
+    end
+
+    subgraph External["☁️ Servicios cloud externos"]
+        TGAPI[Telegram Bot API]
+        GEMINI[Google Gemini API<br/>function calling]
+    end
+
+    subgraph Server["🖥️ Tu servidor · Docker Compose"]
+        PROXY[Reverse Proxy<br/>Nginx / Traefik + TLS]
+        BOT[Bot Service<br/>webhook + orquestador]
+        MCP[MCP Server<br/>Firefly III MCP]
+        FIREFLY[Firefly III<br/>REST API + Web UI]
+        DB[(MySQL / MariaDB)]
+    end
+
+    TG <-->|mensajes| TGAPI
+    TGAPI <-->|webhook| PROXY
+    PROXY --> BOT
+    BOT <-->|prompt + tool defs| GEMINI
+    BOT <-->|ejecuta tool calls| MCP
+    MCP <-->|REST API| FIREFLY
+    FIREFLY <--> DB
+
+    AND -->|HTTPS, OAuth2 / PAT| PROXY
+    PROXY <--> FIREFLY
+
+    AND -.- NOTIF
+    NOTIF -.->|texto de notificación<br/>Nequi, Bancolombia, etc.| BOT
+
+    classDef external fill:#fef3c7,stroke:#d97706,color:#111
+    classDef server fill:#dbeafe,stroke:#2563eb,color:#111
+    classDef optional fill:#f3f4f6,stroke:#9ca3af,stroke-dasharray: 5 5,color:#111
+
+    class TGAPI,GEMINI external
+    class PROXY,BOT,MCP,FIREFLY,DB server
+    class NOTIF optional

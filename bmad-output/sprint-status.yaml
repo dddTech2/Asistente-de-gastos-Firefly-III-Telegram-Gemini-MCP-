@@ -1,0 +1,570 @@
+# BMAD Sprint Status — Sequencing System-of-Record
+# Generated: 2026-09-11T21:57:17Z
+# Project: Asistente de gastos (Firefly III + Telegram + Gemini + MCP)
+#
+# STATUS LIFECYCLE (view only — not a metric):
+#   backlog -> ready-for-dev -> in-progress -> review -> done
+#
+# CAPACITY MODEL: wave width (stories that can run concurrently), not points.
+# NO velocity, burndown, or point fields belong in this file.
+
+project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
+track: "BMad Method"
+generated_at: "2026-09-11T21:57:17Z"
+last_updated: "2026-09-11T21:57:17Z"
+epics:
+- id: "epic-0"
+  title: "Infraestructura base"
+  description: ""
+  status: in-progress
+  story_ids:
+  - "0.1.firefly-docker-compose"
+  - "0.2.reverse-proxy-https"
+  - "0.3.redis-postgres-servicios"
+  - "0.4.backups-automaticos"
+  - "0.5.prueba-restauracion-backup"
+- id: "epic-1"
+  title: "Autenticación y multi-tenancy"
+  description: ""
+  status: backlog
+  story_ids:
+  - "1.1.whitelist-chat-id"
+  - "1.2.spike-provisionamiento-pat"
+  - "1.3.alta-usuario-firefly"
+  - "1.4.pat-cifrado-postgres"
+  - "1.5.pat-por-request-mcp"
+- id: "epic-2"
+  title: "Bot de Telegram (esqueleto)"
+  description: ""
+  status: backlog
+  story_ids:
+  - "2.1.bot-botfather-webhook"
+  - "2.2.bot-echo-response"
+  - "2.3.webhook-ack-asincrono"
+- id: "epic-3"
+  title: "Integración directa con Firefly III (sin IA todavía)"
+  description: ""
+  status: backlog
+  story_ids:
+  - "3.1.comando-gasto-manual"
+  - "3.2.comando-resumen-mensual"
+- id: "epic-4"
+  title: "Servidor MCP"
+  description: ""
+  status: backlog
+  story_ids:
+  - "4.1.mcp-multitenant-deploy"
+  - "4.2.mcp-inspector-test"
+  - "4.3.mcp-tools-restringidas"
+- id: "epic-5"
+  title: "Integración con Gemini (conversación en lenguaje natural)"
+  description: ""
+  status: backlog
+  story_ids:
+  - "5.1.prompt-tools-gemini"
+  - "5.2.registro-gasto-nl"
+  - "5.3.consulta-gasto-nl"
+  - "5.4.aclaracion-dato-invalido"
+  - "5.5.memoria-conversacion-corta"
+- id: "epic-6"
+  title: "Control de costos y concurrencia"
+  description: ""
+  status: backlog
+  story_ids:
+  - "6.1.webhook-dedup-update-id"
+  - "6.2.cola-bullmq-redis"
+  - "6.3.rate-limiting-por-usuario"
+  - "6.4.reintentos-backoff"
+- id: "epic-7"
+  title: "App Android"
+  description: ""
+  status: backlog
+  story_ids:
+  - "7.1.waterfly-conexion-pat"
+  - "7.2.evaluacion-app-propia"
+- id: "epic-8"
+  title: "Observabilidad y hardening"
+  description: ""
+  status: backlog
+  story_ids:
+  - "8.1.logs-estructurados"
+  - "8.2.tabla-auditoria-ia"
+  - "8.3.rotacion-secretos"
+  - "8.4.alertas-caida-servicio"
+  - "8.5.prueba-carga-50-usuarios"
+  - "8.6.ejecucion-reporte-prueba-carga"
+stories:
+- id: "0.1.firefly-docker-compose"
+  title: "Desplegar Firefly III + Postgres/MariaDB con Docker Compose"
+  epic_id: "epic-0"
+  status: ready-for-dev
+  file: "bmad-output/stories/0.1.firefly-docker-compose.story.md"
+  parallel_set: 1
+  dependencies: []
+  owned_scope:
+  - "infra/docker-compose.yml"
+  - "infra/.env.example"
+  - "infra/.gitignore"
+  - "infra/README.md"
+- id: "0.2.reverse-proxy-https"
+  title: "Reverse proxy con HTTPS automático"
+  epic_id: "epic-0"
+  status: backlog
+  file: "bmad-output/stories/0.2.reverse-proxy-https.story.md"
+  parallel_set: 2
+  dependencies:
+  - "0.1.firefly-docker-compose"
+  owned_scope:
+  - "infra/docker-compose.yml"
+  - "infra/reverse-proxy/traefik.yml"
+  - "infra/reverse-proxy/dynamic/"
+  - "infra/.env.example"
+- id: "0.3.redis-postgres-servicios"
+  title: "Redis y Postgres como servicios separados del bot"
+  epic_id: "epic-0"
+  status: backlog
+  file: "bmad-output/stories/0.3.redis-postgres-servicios.story.md"
+  parallel_set: 3
+  dependencies:
+  - "0.1.firefly-docker-compose"
+  - "0.2.reverse-proxy-https"
+  owned_scope:
+  - "infra/docker-compose.yml"
+  - "infra/.env.example"
+- id: "0.4.backups-automaticos"
+  title: "Backups automáticos diarios de toda la base de datos"
+  epic_id: "epic-0"
+  status: backlog
+  file: "bmad-output/stories/0.4.backups-automaticos.story.md"
+  parallel_set: 4
+  dependencies:
+  - "0.3.redis-postgres-servicios"
+  owned_scope:
+  - "infra/backups/backup.sh"
+  - "infra/backups/crontab"
+  - "infra/docker-compose.yml"
+  - "infra/.env.example"
+- id: "0.5.prueba-restauracion-backup"
+  title: "Probar una restauración completa desde backup"
+  epic_id: "epic-0"
+  status: backlog
+  file: "bmad-output/stories/0.5.prueba-restauracion-backup.story.md"
+  parallel_set: 5
+  dependencies:
+  - "0.4.backups-automaticos"
+  owned_scope:
+  - "infra/backups/restore-runbook.md"
+  - "infra/backups/docker-compose.restore-test.yml"
+- id: "1.1.whitelist-chat-id"
+  title: "El bot solo responde a chat_id registrados (whitelist)"
+  epic_id: "epic-1"
+  status: backlog
+  file: "bmad-output/stories/1.1.whitelist-chat-id.story.md"
+  parallel_set: 4
+  dependencies:
+  - "0.3.redis-postgres-servicios"
+  owned_scope:
+  - "bot-service/src/db/migrations/0001_create_usuarios_autorizados.sql"
+  - "bot-service/src/db/usuarios.repository.ts"
+  - "bot-service/src/auth/whitelist.middleware.ts"
+  - "bot-service/test/auth/whitelist.middleware.test.ts"
+- id: "1.2.spike-provisionamiento-pat"
+  title: "Spike: PAT vía API admin o login manual"
+  epic_id: "epic-1"
+  status: backlog
+  file: "bmad-output/stories/1.2.spike-provisionamiento-pat.story.md"
+  parallel_set: 2
+  dependencies:
+  - "0.1.firefly-docker-compose"
+  owned_scope:
+  - "docs/plan/spike-provisionamiento-pat-findings.md"
+- id: "1.3.alta-usuario-firefly"
+  title: "Flujo controlado de alta de cuentas Firefly III"
+  epic_id: "epic-1"
+  status: backlog
+  file: "bmad-output/stories/1.3.alta-usuario-firefly.story.md"
+  parallel_set: 5
+  dependencies:
+  - "1.1.whitelist-chat-id"
+  - "1.2.spike-provisionamiento-pat"
+  owned_scope:
+  - "bot-service/src/provisioning/firefly-admin-client.ts"
+  - "bot-service/src/provisioning/alta-usuario.ts"
+  - "bot-service/test/provisioning/alta-usuario.test.ts"
+- id: "1.4.pat-cifrado-postgres"
+  title: "PAT cifrado en Postgres vinculado a chat_id"
+  epic_id: "epic-1"
+  status: backlog
+  file: "bmad-output/stories/1.4.pat-cifrado-postgres.story.md"
+  parallel_set: 6
+  dependencies:
+  - "1.1.whitelist-chat-id"
+  - "1.3.alta-usuario-firefly"
+  owned_scope:
+  - "bot-service/src/db/migrations/0002_add_pat_cifrado_column.sql"
+  - "bot-service/src/auth/pat-crypto.ts"
+  - "bot-service/test/auth/pat-crypto.test.ts"
+- id: "1.5.pat-por-request-mcp"
+  title: "Cada llamada al MCP usa el PAT del usuario que escribió el mensaje"
+  epic_id: "epic-1"
+  status: backlog
+  file: "bmad-output/stories/1.5.pat-por-request-mcp.story.md"
+  parallel_set: 7
+  dependencies:
+  - "1.4.pat-cifrado-postgres"
+  owned_scope:
+  - "bot-service/src/auth/credential-resolver.ts"
+  - "bot-service/test/auth/credential-resolver.test.ts"
+- id: "2.1.bot-botfather-webhook"
+  title: "Crear bot en BotFather y configurar el webhook"
+  epic_id: "epic-2"
+  status: backlog
+  file: "bmad-output/stories/2.1.bot-botfather-webhook.story.md"
+  parallel_set: 3
+  dependencies:
+  - "0.2.reverse-proxy-https"
+  owned_scope:
+  - "bot-service/package.json"
+  - "bot-service/src/server.ts"
+  - "bot-service/src/webhook/telegramWebhook.ts"
+  - "bot-service/src/config/env.ts"
+  - "bot-service/.env.example"
+- id: "2.2.bot-echo-response"
+  title: "El bot responde algo al usuario para confirmar que funciona"
+  epic_id: "epic-2"
+  status: backlog
+  file: "bmad-output/stories/2.2.bot-echo-response.story.md"
+  parallel_set: 4
+  dependencies:
+  - "2.1.bot-botfather-webhook"
+  owned_scope:
+  - "bot-service/src/webhook/telegramWebhook.ts"
+  - "bot-service/src/handlers/echoHandler.ts"
+  - "bot-service/src/telegram/sendMessage.ts"
+- id: "2.3.webhook-ack-asincrono"
+  title: "Confirmar webhook a Telegram inmediatamente y procesar de forma asíncrona"
+  epic_id: "epic-2"
+  status: backlog
+  file: "bmad-output/stories/2.3.webhook-ack-asincrono.story.md"
+  parallel_set: 5
+  dependencies:
+  - "2.2.bot-echo-response"
+  owned_scope:
+  - "bot-service/src/webhook/telegramWebhook.ts"
+  - "bot-service/src/queue/inMemoryProcessingQueue.ts"
+  - "bot-service/src/logging/logger.ts"
+- id: "3.1.comando-gasto-manual"
+  title: "Comando /gasto crea una transacción real en Firefly III"
+  epic_id: "epic-3"
+  status: backlog
+  file: "bmad-output/stories/3.1.comando-gasto-manual.story.md"
+  parallel_set: 6
+  dependencies:
+  - "2.3.webhook-ack-asincrono"
+  owned_scope:
+  - "bot-service/src/commands/gasto.ts"
+  - "bot-service/src/services/firefly-client.ts"
+  - "bot-service/src/bot.ts"
+  - "bot-service/src/config/env.ts"
+  - "bot-service/.env.example"
+- id: "3.2.comando-resumen-mensual"
+  title: "Comando de resumen mensual de transacciones"
+  epic_id: "epic-3"
+  status: backlog
+  file: "bmad-output/stories/3.2.comando-resumen-mensual.story.md"
+  parallel_set: 7
+  dependencies:
+  - "3.1.comando-gasto-manual"
+  owned_scope:
+  - "bot-service/src/commands/resumen.ts"
+  - "bot-service/src/services/firefly-client.ts"
+  - "bot-service/src/bot.ts"
+- id: "4.1.mcp-multitenant-deploy"
+  title: "Desplegar el MCP de Firefly III en modo multi-tenant"
+  epic_id: "epic-4"
+  status: backlog
+  file: "bmad-output/stories/4.1.mcp-multitenant-deploy.story.md"
+  parallel_set: 8
+  dependencies:
+  - "0.1.firefly-docker-compose"
+  - "1.4.pat-cifrado-postgres"
+  - "1.5.pat-por-request-mcp"
+  - "3.2.comando-resumen-mensual"
+  owned_scope:
+  - "infra/docker-compose.yml"
+  - "mcp/README.md"
+  - "infra/.env.example"
+- id: "4.2.mcp-inspector-test"
+  title: "Probar el MCP de forma aislada con MCP Inspector"
+  epic_id: "epic-4"
+  status: backlog
+  file: "bmad-output/stories/4.2.mcp-inspector-test.story.md"
+  parallel_set: 9
+  dependencies:
+  - "4.1.mcp-multitenant-deploy"
+  owned_scope:
+  - "mcp/README.md"
+  - "mcp/tools-inventory.md"
+- id: "4.3.mcp-tools-restringidas"
+  title: "Limitar el set de tools expuestas por el MCP"
+  epic_id: "epic-4"
+  status: backlog
+  file: "bmad-output/stories/4.3.mcp-tools-restringidas.story.md"
+  parallel_set: 10
+  dependencies:
+  - "4.2.mcp-inspector-test"
+  owned_scope:
+  - "infra/docker-compose.yml"
+  - "mcp/README.md"
+  - "mcp/tools-allowlist.md"
+- id: "5.1.prompt-tools-gemini"
+  title: "Armar prompt con historial + tools del MCP y llamar a Gemini"
+  epic_id: "epic-5"
+  status: backlog
+  file: "bmad-output/stories/5.1.prompt-tools-gemini.story.md"
+  parallel_set: 11
+  dependencies:
+  - "4.3.mcp-tools-restringidas"
+  owned_scope:
+  - "src/gemini/geminiClient.ts"
+  - "src/gemini/promptBuilder.ts"
+  - "src/gemini/toolDeclarationsAdapter.ts"
+  - "src/mcp/mcpToolExecutor.ts"
+  - "src/conversation/historyStore.ts"
+  - "src/handlers/messageOrchestrator.ts"
+- id: "5.2.registro-gasto-nl"
+  title: "\"Gasté 20 mil en almuerzo\" crea la transacción correcta"
+  epic_id: "epic-5"
+  status: backlog
+  file: "bmad-output/stories/5.2.registro-gasto-nl.story.md"
+  parallel_set: 12
+  dependencies:
+  - "5.1.prompt-tools-gemini"
+  owned_scope:
+  - "src/gemini/prompts/registroGasto.prompt.ts"
+  - "src/gemini/promptBuilder.ts"
+  - "src/gemini/responseFormatter.ts"
+- id: "5.3.consulta-gasto-nl"
+  title: "\"¿Cuánto llevo gastado en comida este mes?\" responde correctamente"
+  epic_id: "epic-5"
+  status: backlog
+  file: "bmad-output/stories/5.3.consulta-gasto-nl.story.md"
+  parallel_set: 13
+  dependencies:
+  - "5.2.registro-gasto-nl"
+  owned_scope:
+  - "src/gemini/prompts/consultaGasto.prompt.ts"
+  - "src/gemini/promptBuilder.ts"
+  - "src/gemini/dateRangeResolver.ts"
+  - "src/gemini/responseFormatter.ts"
+- id: "5.4.aclaracion-dato-invalido"
+  title: "Pedir aclaración cuando el dato es inválido, en vez de fallar en seco"
+  epic_id: "epic-5"
+  status: backlog
+  file: "bmad-output/stories/5.4.aclaracion-dato-invalido.story.md"
+  parallel_set: 14
+  dependencies:
+  - "5.3.consulta-gasto-nl"
+  owned_scope:
+  - "src/gemini/errorClassifier.ts"
+  - "src/gemini/prompts/aclaracionDato.prompt.ts"
+  - "src/gemini/promptBuilder.ts"
+  - "src/conversation/historyStore.ts"
+  - "src/handlers/messageOrchestrator.ts"
+- id: "5.5.memoria-conversacion-corta"
+  title: "Recordar contexto de los últimos mensajes"
+  epic_id: "epic-5"
+  status: backlog
+  file: "bmad-output/stories/5.5.memoria-conversacion-corta.story.md"
+  parallel_set: 15
+  dependencies:
+  - "5.4.aclaracion-dato-invalido"
+  owned_scope:
+  - "src/conversation/historyWindow.ts"
+  - "src/conversation/historyStore.ts"
+  - "src/gemini/promptBuilder.ts"
+- id: "6.1.webhook-dedup-update-id"
+  title: "Descartar webhooks duplicados usando update_id"
+  epic_id: "epic-6"
+  status: backlog
+  file: "bmad-output/stories/6.1.webhook-dedup-update-id.story.md"
+  parallel_set: 6
+  dependencies:
+  - "2.3.webhook-ack-asincrono"
+  - "0.3.redis-postgres-servicios"
+  owned_scope:
+  - "bot-service/src/telegram/dedup.ts"
+  - "bot-service/src/config/redisClient.ts"
+  - "bot-service/src/telegram/webhookHandler.ts"
+- id: "6.2.cola-bullmq-redis"
+  title: "Cola de procesamiento BullMQ + Redis para mensajes entrantes"
+  epic_id: "epic-6"
+  status: backlog
+  file: "bmad-output/stories/6.2.cola-bullmq-redis.story.md"
+  parallel_set: 12
+  dependencies:
+  - "6.1.webhook-dedup-update-id"
+  - "5.1.prompt-tools-gemini"
+  owned_scope:
+  - "bot-service/src/queue/connection.ts"
+  - "bot-service/src/queue/messageQueue.ts"
+  - "bot-service/src/queue/messageWorker.ts"
+  - "bot-service/src/queue/jobs/processIncomingMessage.ts"
+  - "bot-service/src/telegram/webhookHandler.ts"
+  - "bot-service/src/config/env.ts"
+  - "infra/docker-compose.yml"
+- id: "6.3.rate-limiting-por-usuario"
+  title: "Limitar mensajes por minuto por chat_id"
+  epic_id: "epic-6"
+  status: backlog
+  file: "bmad-output/stories/6.3.rate-limiting-por-usuario.story.md"
+  parallel_set: 13
+  dependencies:
+  - "6.2.cola-bullmq-redis"
+  owned_scope:
+  - "bot-service/src/rateLimit/rateLimiter.ts"
+  - "bot-service/src/rateLimit/rateLimitMiddleware.ts"
+  - "bot-service/src/config/redisClient.ts"
+  - "bot-service/src/queue/jobs/processIncomingMessage.ts"
+  - "bot-service/src/config/env.ts"
+- id: "6.4.reintentos-backoff"
+  title: "Reintentos automáticos con backoff ante fallos de Gemini/Firefly"
+  epic_id: "epic-6"
+  status: backlog
+  file: "bmad-output/stories/6.4.reintentos-backoff.story.md"
+  parallel_set: 14
+  dependencies:
+  - "6.3.rate-limiting-por-usuario"
+  owned_scope:
+  - "bot-service/src/retry/backoff.ts"
+  - "bot-service/src/retry/circuitBreaker.ts"
+  - "bot-service/src/queue/messageQueue.ts"
+  - "bot-service/src/config/env.ts"
+- id: "7.1.waterfly-conexion-pat"
+  title: "Conectar Waterfly III a Firefly III con PAT propio"
+  epic_id: "epic-7"
+  status: backlog
+  file: "bmad-output/stories/7.1.waterfly-conexion-pat.story.md"
+  parallel_set: 7
+  dependencies:
+  - "1.4.pat-cifrado-postgres"
+  owned_scope:
+  - "docs/mobile/waterfly-iii-setup.md"
+- id: "7.2.evaluacion-app-propia"
+  title: "Evaluar si vale la pena una app Android propia"
+  epic_id: "epic-7"
+  status: backlog
+  file: "bmad-output/stories/7.2.evaluacion-app-propia.story.md"
+  parallel_set: 8
+  dependencies:
+  - "7.1.waterfly-conexion-pat"
+  owned_scope:
+  - "docs/plan/decisiones/evaluacion-app-android-propia.md"
+- id: "8.1.logs-estructurados"
+  title: "Logs estructurados de todo lo que hace el bot"
+  epic_id: "epic-8"
+  status: backlog
+  file: "bmad-output/stories/8.1.logs-estructurados.story.md"
+  parallel_set: 4
+  dependencies:
+  - "2.1.bot-botfather-webhook"
+  owned_scope:
+  - "src/lib/logger.ts"
+  - "src/config/logging.config.ts"
+  - "bot-service/.env.example"
+- id: "8.2.tabla-auditoria-ia"
+  title: "Auditoría de qué escribió cada usuario y qué tool ejecutó la IA"
+  epic_id: "epic-8"
+  status: backlog
+  file: "bmad-output/stories/8.2.tabla-auditoria-ia.story.md"
+  parallel_set: 12
+  dependencies:
+  - "1.4.pat-cifrado-postgres"
+  - "5.1.prompt-tools-gemini"
+  owned_scope:
+  - "src/db/migrations/00X_create_log_auditoria_ia.sql"
+  - "src/repositories/auditoriaIaRepository.ts"
+  - "src/services/auditoriaIaService.ts"
+  - "src/mcp/mcpToolExecutor.ts"
+- id: "8.3.rotacion-secretos"
+  title: "Rotar y proteger todos los secretos fuera del control de versiones"
+  epic_id: "epic-8"
+  status: backlog
+  file: "bmad-output/stories/8.3.rotacion-secretos.story.md"
+  parallel_set: 5
+  dependencies:
+  - "0.1.firefly-docker-compose"
+  - "8.1.logs-estructurados"
+  owned_scope:
+  - "src/config/env.schema.ts"
+  - "src/config/env.ts"
+  - "bot-service/.env.example"
+  - ".gitignore"
+  - "docs/runbooks/rotacion-secretos.md"
+- id: "8.4.alertas-caida-servicio"
+  title: "Alertas si el bot o Firefly III se caen"
+  epic_id: "epic-8"
+  status: backlog
+  file: "bmad-output/stories/8.4.alertas-caida-servicio.story.md"
+  parallel_set: 6
+  dependencies:
+  - "0.1.firefly-docker-compose"
+  - "2.3.webhook-ack-asincrono"
+  owned_scope:
+  - "src/routes/health.ts"
+  - "infra/docker-compose.yml"
+  - "docs/runbooks/alertas-monitoreo.md"
+- id: "8.5.prueba-carga-50-usuarios"
+  title: "Preparar entorno y cuentas sintéticas para la prueba de carga"
+  epic_id: "epic-8"
+  status: backlog
+  file: "bmad-output/stories/8.5.prueba-carga-50-usuarios.story.md"
+  parallel_set: 7
+  dependencies:
+  - "1.4.pat-cifrado-postgres"
+  owned_scope:
+  - "scripts/load-test/k6-scenario-50-usuarios.js"
+  - "scripts/load-test/setup-synthetic-users.ts"
+  - "scripts/load-test/teardown-synthetic-users.ts"
+  - "scripts/load-test/message-templates.json"
+- id: "8.6.ejecucion-reporte-prueba-carga"
+  title: "Ejecutar la prueba de carga de 50 usuarios y producir el reporte de veredicto"
+  epic_id: "epic-8"
+  status: backlog
+  file: "bmad-output/stories/8.6.ejecucion-reporte-prueba-carga.story.md"
+  parallel_set: 16
+  dependencies:
+  - "8.5.prueba-carga-50-usuarios"
+  - "4.3.mcp-tools-restringidas"
+  - "5.5.memoria-conversacion-corta"
+  - "6.4.reintentos-backoff"
+  owned_scope:
+  - "scripts/load-test/k6-scenario-50-usuarios.js"
+  - "docs/reports/prueba-carga-50-usuarios-resultados.md"
+sequencing_summary:
+  total_epics: 9
+  total_stories: 35
+  total_waves: 16
+  wave_widths:
+  - 1
+  - 2
+  - 2
+  - 4
+  - 4
+  - 4
+  - 4
+  - 2
+  - 1
+  - 1
+  - 1
+  - 3
+  - 2
+  - 2
+  - 1
+  - 1
+  ready_for_dev:
+    count: 1
+    story_ids:
+    - "0.1.firefly-docker-compose"
+  handoff_notes: "Wave 1 (1 historias) puede despacharse ya: 0.1.firefly-docker-compose. Owned Scope verificado\
+    \ sin conflictos dentro de cada wave (ver bmad-output/decision-log.md, entrada de sprint-planning)."

@@ -1,0 +1,45 @@
+sequenceDiagram
+    actor Usuario
+    participant Telegram as Telegram Bot API
+    participant Bot as Bot Service
+    participant Gemini as Gemini API
+    participant MCP as MCP Server
+    participant Firefly as Firefly III API
+    participant DB as Base de datos
+
+    Usuario->>Telegram: Envía mensaje
+    Telegram->>Bot: Webhook (POST)
+
+    alt Usuario no autorizado
+        Bot->>Telegram: "No autorizado"
+        Telegram->>Usuario: Responde
+    else Usuario autorizado
+        Bot->>Bot: Arma contexto (historial + tools MCP)
+        Bot->>Gemini: Prompt + definición de herramientas
+        Gemini->>Gemini: Procesa (function calling)
+
+        alt No requiere herramienta
+            Gemini-->>Bot: Respuesta directa
+        else Requiere llamar herramienta
+            Gemini-->>Bot: Tool call (ej. crear_transacción)
+            Bot->>MCP: Ejecuta tool call
+            MCP->>Firefly: Llamada REST (POST /transactions)
+
+            alt Datos inválidos
+                Firefly-->>MCP: Error de validación
+                MCP-->>Bot: Error
+                Bot->>Gemini: Envía error como tool result
+                Gemini-->>Bot: Pide aclaración al usuario
+            else Datos válidos
+                Firefly->>DB: INSERT/UPDATE transacción
+                DB-->>Firefly: Confirma escritura
+                Firefly-->>MCP: Resultado (transacción creada)
+                MCP-->>Bot: Tool result
+                Bot->>Gemini: Envía resultado
+                Gemini-->>Bot: Respuesta en lenguaje natural
+            end
+        end
+
+        Bot->>Telegram: Envía respuesta final
+        Telegram->>Usuario: Responde
+    end
