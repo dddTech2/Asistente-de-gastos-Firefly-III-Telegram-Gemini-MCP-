@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-12T00:48:55Z"
+last_updated: "2026-09-12T02:15:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -171,7 +171,7 @@ stories:
 - id: "1.2.spike-provisionamiento-pat"
   title: "Spike: PAT vía API admin o login manual"
   epic_id: "epic-1"
-  status: ready-for-dev
+  status: done
   file: "bmad-output/stories/1.2.spike-provisionamiento-pat.story.md"
   parallel_set: 2
   dependencies:
@@ -563,9 +563,9 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 2
+    count: 1
     story_ids:
-    - "1.2.spike-provisionamiento-pat"
     - "2.1.bot-botfather-webhook"
-  handoff_notes: "0.1 y 0.2 done (Firefly III + HTTPS via nginx del host, desplegados y validados en VPS).\
-    \ 1.2 (spike PAT) y 2.1 (bot BotFather/webhook) desbloqueadas a ready-for-dev."
+  handoff_notes: "0.1, 0.2 y 1.2 done (Firefly III + HTTPS via nginx del host desplegados y validados en VPS;\
+    \ spike de PAT resuelto por evidencia de codigo fuente, variante semi-manual confirmada para 1.3). 2.1\
+    \ (bot BotFather/webhook) sigue ready-for-dev; 1.3 aun bloqueada por 1.1 (backlog)."
