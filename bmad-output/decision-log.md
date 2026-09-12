@@ -19,6 +19,13 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 1.1 (whitelist de chat_id) cerrada — verificada en producción
+- **Decision:** usuario desplegó (migración aplicada, `chat_id` propio dado de alta, `pm2 restart`) y confirmó ambos casos en vivo: un `chat_id` no dado de alta recibe "No autorizado..."; el `chat_id` propio sigue recibiendo el eco normal (probado con "hla").
+- **Nota operativa:** la VPS no tiene `psql` instalado en el host — hubo que correrlo vía `docker exec -it bot-postgres bash -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "..."'`. Documentado en `bot-service/README.md` para la próxima vez que haga falta un `INSERT`/consulta manual contra ese Postgres.
+- **Housekeeping:** se corrigió otra inconsistencia igual a la de 1.1 con la historia `1.3.alta-usuario-firefly` — su propio archivo ya la tenía como `ready-for-dev` pero `sprint-status.yaml` la marcaba `backlog`. Sus dos dependencias (1.1, 1.2) ya están `done`, así que queda como único item `ready-for-dev`.
+- **Made by:** dev agent (implementación de 1.1)
+- **Supersedes:** la entrada anterior de 1.1 (código completo, despliegue pendiente) — ahora `done`.
+
 ### 2026-09-12 — Historia 1.1 (whitelist de chat_id): implementada, pendiente de despliegue
 - **Decision:** whitelist implementada como middleware nativo de grammY (`bot.use(createWhitelistMiddleware(bot, repo))`), registrado antes que cualquier handler de negocio en `telegramWebhook.ts` — grammY ya corta la cadena de middlewares si no se llama `next()`, así que AC #2/#3/#4 salen del propio framework en vez de un pipeline propio a medida. Tabla `usuarios_autorizados` (Postgres de la 0.3) vía migración idempotente (`CREATE TABLE IF NOT EXISTS`) + `npm run migrate` nuevo (no estaba en el Owned Scope original, pero evita aplicar SQL a mano en cada deploy — mismo criterio que `npm run set-webhook`).
 - **Bug encontrado y corregido en desarrollo:** la versión inicial usaba `ctx.reply(...)` para el mensaje de "no autorizado" y los tests fallaban con `401 Unauthorized` real contra la API de Telegram — grammY crea una instancia de `Api` nueva por cada update dentro de `handleUpdate` (no reutiliza `bot.api`), así que mockear `bot.api.sendMessage` no interceptaba `ctx.reply`. Se corrigió reutilizando `sendTelegramMessage(bot, chatId, texto)`, el mismo wrapper que `echoHandler.ts` ya usa desde la historia 2.2 por este exact motivo.

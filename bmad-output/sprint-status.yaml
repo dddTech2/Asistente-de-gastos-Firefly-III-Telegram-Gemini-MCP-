@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-12T12:00:00Z"
+last_updated: "2026-09-12T13:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -158,7 +158,7 @@ stories:
 - id: "1.1.whitelist-chat-id"
   title: "El bot solo responde a chat_id registrados (whitelist)"
   epic_id: "epic-1"
-  status: in-progress
+  status: done
   file: "bmad-output/stories/1.1.whitelist-chat-id.story.md"
   parallel_set: 4
   dependencies:
@@ -181,7 +181,7 @@ stories:
 - id: "1.3.alta-usuario-firefly"
   title: "Flujo controlado de alta de cuentas Firefly III"
   epic_id: "epic-1"
-  status: backlog
+  status: ready-for-dev
   file: "bmad-output/stories/1.3.alta-usuario-firefly.story.md"
   parallel_set: 5
   dependencies:
@@ -563,13 +563,13 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 0
-    story_ids: []
-  handoff_notes: "0.1, 0.2, 0.3, 1.2, 2.1, 2.2, 2.3 y 8.1 done. 1.1 (whitelist-chat-id) in-progress:\
-    \ middleware nativo de grammY (bot.use, antes de cualquier handler de negocio), tabla\
-    \ usuarios_autorizados + migracion idempotente + script npm run migrate, repositorio\
-    \ parametrizado, fail-closed si Postgres falla. 39/39 tests locales en verde + 2 tests de\
-    \ integracion con Postgres real via Docker efimero que se saltean en este entorno (sin daemon\
-    \ Docker) pero corren completos en la VPS. Pendiente desplegar, migrar, sembrar el primer\
-    \ chat_id y confirmar en vivo antes de cerrar a done. Ready_for_dev vacio hasta que cierre 1.1\
-    \ (desbloquea 1.3)."
+    count: 1
+    story_ids:
+    - "1.3.alta-usuario-firefly"
+  handoff_notes: "0.1, 0.2, 0.3, 1.1, 1.2, 2.1, 2.2, 2.3 y 8.1 done. 1.1 (whitelist) verificada en\
+    \ produccion: chat_id no autorizado recibe 'No autorizado...', chat_id dado de alta sigue con\
+    \ el eco normal. Nota operativa: la VPS no tiene psql en el host, hay que usar 'docker exec\
+    \ bot-postgres psql' (documentado en bot-service/README.md). Corregida otra inconsistencia:\
+    \ 1.3 ya estaba redactada como ready-for-dev en su propio archivo pero figuraba backlog en\
+    \ este YAML -- ahora alineados. 1.3 (alta-usuario-firefly) es el unico ready-for-dev: sus dos\
+    \ dependencias (1.1, 1.2) ya estan done."

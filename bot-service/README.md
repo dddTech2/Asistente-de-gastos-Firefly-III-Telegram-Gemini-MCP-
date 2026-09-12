@@ -229,8 +229,17 @@ alta real (eso es la historia 1.3, bloqueada por el spike 1.2), así que por
 ahora es un `INSERT` manual. Tu `chat_id` lo podés ver hablándole a
 [@userinfobot](https://t.me/userinfobot) en Telegram:
 
+Si tenés `psql` instalado en el host:
+
 ```bash
 psql "$DATABASE_URL" -c "INSERT INTO usuarios_autorizados (chat_id, activo) VALUES (<tu_chat_id>, true);"
+```
+
+Si no (caso típico de una VPS sin cliente Postgres en el host), corré `psql` desde
+adentro del propio contenedor `bot-postgres`:
+
+```bash
+docker exec -it bot-postgres bash -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "INSERT INTO usuarios_autorizados (chat_id, activo) VALUES (<tu_chat_id>, true);"'
 ```
 
 **Comportamiento:**
