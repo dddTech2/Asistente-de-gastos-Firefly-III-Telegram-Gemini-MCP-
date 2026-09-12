@@ -19,6 +19,12 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 2.1 (bot BotFather/webhook) cerrada — desplegada y verificada en VPS
+- **Decision:** completado el despliegue real: bot creado en `@BotFather`, subdominio elegido `bot.firefly.nyoholding.com` (DNS A ya apuntaba a la VPS), nginx vhost + `certbot --nginx` (mismo patrón que 0.2), Bot Service corriendo con `pm2` como proceso Node directo (sin Docker, igual que `nyoholding-contact-api`), y `npm run set-webhook` corrido con éxito.
+- **Verificación independiente (no solo el reporte del usuario):** `curl` desde fuera de la VPS confirmó: `http://bot.firefly.nyoholding.com` → `301` a `https://`; `https://` con TLS válido (sin `-k`) y `X-Powered-By: Express` en el 404 de `/` (confirma que el proxy llega al Bot Service real); `POST /webhook/telegram` sin el header `X-Telegram-Bot-Api-Secret-Token` → `401`; con header incorrecto → `401`. `git grep`/`git log -p` sobre `.env` confirmó que el token real nunca se commiteó.
+- **Made by:** dev agent (implementación de 2.1)
+- **Supersedes:** la entrada anterior de 2.1 (código completo, despliegue pendiente) — ahora sí `done`.
+
 ### 2026-09-11 — Historia 2.1 (bot BotFather/webhook): código completo, despliegue pendiente
 - **Decision:** implementado el Bot Service (`bot-service/`) en Node.js + TypeScript con **grammY** (elegido sobre Telegraf por API más simple para el caso de uso y tipado nativo). Estructura: `src/server.ts` (Express + grammY Bot), `src/webhook/verifySecretToken.ts` (middleware AC #4, con test unitario), `src/webhook/telegramWebhook.ts` (handler que delega a `bot.handleUpdate`), `src/config/env.ts` (validación de env vars requeridas), `scripts/set-webhook.ts` (registra el webhook y verifica `getWebhookInfo` para el AC #5). `npm install`/`build`/`test` corridos localmente en Windows (no requiere el Docker remoto, es código Node puro) — build limpio, 3/3 tests en verde.
 - **Bug encontrado y corregido antes de avanzar:** `bot.handleUpdate()` de grammY exige `bot.init()` primero; sin eso cada update real habría fallado en runtime ("Bot not initialized!"), enmascarado como un 200 silencioso por el manejo de errores del handler — el bot nunca habría procesado nada sin que se notara. `createServer()` se hizo async y ahora hace `await bot.init()` antes de exponer las rutas. Verificado con un smoke test end-to-end inyectando `botInfo` para no depender de un token real.

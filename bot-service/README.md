@@ -74,18 +74,18 @@ nginx del paso 3. Ajustar si `3001` ya está ocupado por otro proyecto de la VPS
 ## 3. Reverse proxy + HTTPS para el webhook (AC #2)
 
 Necesita su **propio subdominio** (Firefly ya ocupa `firefly.nyoholding.com`
-por completo). Sugerido: `bot.nyoholding.com` — confirmar o ajustar según
-disponibilidad. Mismo patrón que la historia 0.2:
+por completo). Se usó `bot.firefly.nyoholding.com`. Mismo patrón que la
+historia 0.2:
 
-1. Crear el registro DNS **A** de `bot.nyoholding.com` → IP de esta VPS.
+1. Crear el registro DNS **A** de `bot.firefly.nyoholding.com` → IP de esta VPS.
 
 2. Server block en el nginx del sistema:
 
    ```nginx
-   # /etc/nginx/sites-available/bot.nyoholding.com
+   # /etc/nginx/sites-available/bot.firefly.nyoholding.com
    server {
        listen 80;
-       server_name bot.nyoholding.com;
+       server_name bot.firefly.nyoholding.com;
 
        location / {
            proxy_pass http://127.0.0.1:3001;
@@ -98,23 +98,23 @@ disponibilidad. Mismo patrón que la historia 0.2:
    ```
 
    ```bash
-   sudo ln -s /etc/nginx/sites-available/bot.nyoholding.com /etc/nginx/sites-enabled/
+   sudo ln -s /etc/nginx/sites-available/bot.firefly.nyoholding.com /etc/nginx/sites-enabled/
    sudo nginx -t && sudo systemctl reload nginx
    ```
 
 3. Certificado:
 
    ```bash
-   sudo certbot --nginx -d bot.nyoholding.com
+   sudo certbot --nginx -d bot.firefly.nyoholding.com
    ```
 
-4. Confirmar `https://bot.nyoholding.com` responde (aunque sea con un error de
+4. Confirmar `https://bot.firefly.nyoholding.com` responde (aunque sea con un error de
    Express por falta de ruta `GET /` — lo que importa es que el TLS y el proxy
    ya funcionan).
 
 ## 4. Registrar el webhook contra la API de Telegram (AC #3, #5)
 
-Con `PUBLIC_URL=https://bot.nyoholding.com` ya en `.env`:
+Con `PUBLIC_URL=https://bot.firefly.nyoholding.com` ya en `.env`:
 
 ```bash
 npm run set-webhook
@@ -132,7 +132,7 @@ Un update real de Telegram (o un `curl` simulando uno) sin el header
 `401` y no debe aparecer procesado en los logs del Bot Service:
 
 ```bash
-curl -i -X POST https://bot.nyoholding.com/webhook/telegram \
+curl -i -X POST https://bot.firefly.nyoholding.com/webhook/telegram \
   -H "Content-Type: application/json" \
   -d '{}'
 # esperado: 401
