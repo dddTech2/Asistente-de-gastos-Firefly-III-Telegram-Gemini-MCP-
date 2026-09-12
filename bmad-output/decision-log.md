@@ -19,6 +19,11 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 2.2 (echo del bot) cerrada — verificada en producción
+- **Decision:** usuario desplegó el código en la VPS (`git pull && npm install && npm run build && pm2 restart bot-service`) y confirmó comportamiento real: mensaje "hola" enviado al bot por Telegram → respuesta `Recibido: "hola"`. Verificación independiente adicional: `curl -X POST` al webhook sin `secret_token` tras el restart sigue devolviendo `401` (el restart no rompió la protección de 2.1).
+- **Made by:** dev agent (implementación de 2.2)
+- **Supersedes:** la entrada anterior de 2.2 (código completo, prueba real pendiente) — ahora `done`.
+
 ### 2026-09-12 — Historia 2.2 (echo del bot): implementada con filtro nativo de grammY, no parseo manual
 - **Decision:** implementado el eco usando `bot.on("message:text", ...)` de grammY (registrado en `telegramWebhook.ts` sobre el mismo `bot` de 2.1) en vez de parsear el `Update` crudo a mano como sugerían literalmente las Tasks/Subtasks de la historia. `src/handlers/echoHandler.ts` expone `formatEchoReply` (pura) y `registerEchoHandler`; `src/telegram/sendMessage.ts` es un envoltorio delgado sobre `bot.api.sendMessage` para poder mockearlo en tests.
 - **Rationale:** el filtro nativo de grammY ya conoce la forma completa del tipo `Update` de Telegram (mensajes, stickers, fotos, `edited_message`, `channel_post`, etc.), así que delegarle el filtrado cumple el AC #3 (no romper con updates no soportados) de forma más robusta que reimplementar ese parseo a mano, con menos superficie para bugs. El Dev Notes de la historia ya dejaba explícito que el "cómo" del echo quedaba a criterio de implementación — esto es una decisión de implementación, no un cambio de alcance ni de AC.

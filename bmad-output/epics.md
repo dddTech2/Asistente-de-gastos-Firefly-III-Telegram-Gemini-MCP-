@@ -103,7 +103,7 @@ forma asíncrona, sin lógica de negocio todavía.
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
 | 2.1 | bot-botfather-webhook | Crear bot en BotFather y configurar el webhook | done — desplegado en bot.firefly.nyoholding.com (nginx+certbot), webhook y secret_token verificados |
-| 2.2 | bot-echo-response | El bot responde algo al usuario para confirmar que funciona | in-progress — código y tests listos, falta deploy + prueba manual real |
+| 2.2 | bot-echo-response | El bot responde algo al usuario para confirmar que funciona | done — verificado en producción, el bot respondió "Recibido: \"hola\"" |
 | 2.3 | webhook-ack-asincrono | Confirmar webhook a Telegram inmediatamente y procesar de forma asíncrona | ready-for-dev |
 
 **Cross-epic dependencies:**
