@@ -19,6 +19,37 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 1.4 (PAT cifrado en Postgres): implementada, pendiente de despliegue
+- **Decision:** cifrado AES-256-GCM (`node:crypto` nativo, sin dependencias nuevas) para el PAT en
+  reposo. `src/auth/pat-crypto.ts` expone funciones puras `cifrarPat`/`descifrarPat`/
+  `decodificarClaveCifrado` (reciben la clave como `Buffer`, no leen `env`, quedan testeables de
+  forma aislada). El valor se guarda en la columna nueva `pat_cifrado` (migración `0002`, no toca
+  la de 1.1) con formato `"<iv-b64>.<authTag-b64>.<ciphertext-b64>"` — un solo campo cubre los
+  metadatos que exige GCM sin sumar columnas. `usuarios.repository.ts` (de 1.1) se extendió con
+  `guardarPatCifrado(chatId, pat)` y `obtenerPatDescifrado(chatId)`; `createUsuariosRepository`
+  ahora recibe la clave de cifrado como segundo parámetro explícito (mismo patrón que
+  `createFireflyAdminClient` de 1.3: config explícita, no lectura oculta de `env`).
+- **AC #4 (arranque):** `config/env.ts` agrega `patEncryptionKey`, decodificado y validado (32
+  bytes) por `decodificarClaveCifrado` al construir `env` — el proceso falla al importar el módulo
+  si `PAT_ENCRYPTION_KEY` falta o tiene el largo incorrecto, igual que los demás campos
+  `required()` ya existentes.
+- **Desviación de alcance documentada:** `scripts/alta-usuario.ts` (creado en 1.3, fuera del Owned
+  File/Module Scope de 1.4) tenía un sink placeholder explícito para el paso `completar-pat`,
+  pensado para ser reemplazado una vez que existiera esta historia. Se reemplazó por un sink real
+  que llama a `guardarPatCifrado`, cerrando el flujo de alta 1.3+1.4 de punta a punta — sin este
+  cambio el AC #2 no tendría forma de ejercitarse en producción.
+- **Auditoría de logging (AC #5):** revisados los puntos de logging de 1.1/1.3 — ninguno serializa
+  el objeto `usuario` completo ni loggea `pat_cifrado`; `findByChatId` ni siquiera selecciona esa
+  columna. `obtenerPatDescifrado` (el único método que devuelve el PAT en texto plano) todavía no
+  tiene caller en el código — queda para 1.5, que deberá mantener esa misma disciplina.
+- **Testing:** 67 tests pasan localmente (19 nuevos: `pat-crypto.test.ts` unitario puro,
+  `usuarios.repository.pat.test.ts` con mocks + 3 de integración con Postgres real vía contenedor
+  efímero, saltadas en este entorno por falta de Docker — mismo patrón que la integración de 1.1).
+  `tsc --noEmit` limpio.
+- **Made by:** dev agent (implementación de 1.4)
+- **Pendiente:** el administrador debe aplicar la migración `0002` y configurar
+  `PAT_ENCRYPTION_KEY` en la VPS antes de cerrar la historia.
+
 ### 2026-09-12 — Historia 1.3 (alta de usuario Firefly III) cerrada — verificada en producción
 - **Decision:** usuario corrió ambos comandos contra la VPS real. `crear` (con un `chat_id` de
   prueba `999000001`, no un chat real de Telegram porque el comando no envía nada a Telegram)

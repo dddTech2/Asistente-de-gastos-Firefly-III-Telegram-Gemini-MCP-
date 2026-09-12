@@ -294,18 +294,49 @@ Tokens y generarse uno).
 npm run alta-usuario -- completar-pat --chat-id <chat_id> --pat <PAT_del_usuario> --admin <tu_usuario>
 ```
 
-⚠️ La historia 1.4 (cifrado + persistencia del PAT en Postgres) todavía no
-existe: este paso hoy solo recibe el PAT en memoria y lo descarta con una
-advertencia — no lo escribe a disco, log ni ninguna tabla. Una vez que 1.4 esté
-lista, este mismo comando quedará conectado a la capa de cifrado real sin
-cambiar su interfaz.
+Este paso cifra el PAT (AES-256-GCM, historia 1.4) y lo guarda en
+`usuarios_autorizados.pat_cifrado` — ver la sección siguiente.
 
 Si el `chat_id` ya está registrado, el comando falla explícitamente (no es
 idempotente) — evita crear una segunda cuenta Firefly por error.
 
+## PAT cifrado en Postgres (historia 1.4)
+
+El PAT de cada usuario nunca se guarda en texto plano. `completar-pat` (arriba)
+lo cifra con **AES-256-GCM** antes del `INSERT`/`UPDATE`; una inspección directa
+de la fila en Postgres solo muestra el ciphertext.
+
+Formato almacenado en `pat_cifrado` (columna `TEXT`, migración `0002`):
+
+```
+<iv-base64>.<authTag-base64>.<ciphertext-base64>
+```
+
+Un único campo alcanza para los metadatos que exige GCM (nonce + tag de
+autenticación) sin sumar columnas extra. `NULL` significa "usuario dado de
+alta pero sin PAT entregado todavía" (entre el paso 1 y el paso 2 del alta).
+
+Requiere en `.env` (esta sí la usa el proceso principal del bot — falla al
+arrancar si falta o tiene el largo incorrecto):
+
+```
+PAT_ENCRYPTION_KEY=<32 bytes en hex, ej: openssl rand -hex 32>
+```
+
+La clave vive solo en el `.env` del servidor — nunca en el repo, nunca en un
+chat. Si se pierde o rota sin re-cifrar los PAT existentes, quedan
+indescifrables (rotación de secretos: historia futura de Epic 8, HU-33, fuera
+de alcance acá).
+
+`src/auth/pat-crypto.ts` expone `cifrarPat`/`descifrarPat`/`decodificarClaveCifrado`
+(puro, sin tocar la base de datos); `usuarios.repository.ts` los usa en
+`guardarPatCifrado(chatId, pat)` y `obtenerPatDescifrado(chatId)` — esta última
+devuelve el PAT en texto plano únicamente en memoria, para uso inmediato de la
+capa que lo necesite (historia 1.5). Ningún log de la aplicación incluye el PAT
+ni el valor cifrado.
+
 ## Fuera de alcance de esta historia
 
-- PAT cifrado por usuario → historia 1.4.
 - Deduplicar updates repetidos por `update_id` → historia 6.1.
 - Reintentos con backoff ante fallos de Gemini/Firefly → historia 6.4.
 - Reemplazar la cola en memoria por una persistente (BullMQ + Redis) → historia 6.2.

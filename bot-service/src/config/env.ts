@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { decodificarClaveCifrado } from "../auth/pat-crypto.js";
 
 function required(name: string): string {
   const value = process.env[name];
@@ -18,6 +19,11 @@ export const env = {
   // barrera de aislamiento entre usuarios — el proceso no debe arrancar sin
   // poder consultarla.
   databaseUrl: required("DATABASE_URL"),
+  // Historia 1.4: clave simétrica de AES-256-GCM para el PAT en reposo.
+  // Requerida (no opcional): AC #4 exige que el servicio no arranque sin ella.
+  // decodificarClaveCifrado también valida el largo -- una clave mal formada
+  // falla acá, no en el primer cifrado/descifrado real.
+  patEncryptionKey: decodificarClaveCifrado(required("PAT_ENCRYPTION_KEY")),
   // Solo los usa `scripts/alta-usuario.ts` (historia 1.3) — deliberadamente
   // NO son `required()` acá: el proceso principal del bot (webhook) no debe
   // dejar de arrancar por faltar un secreto que ni siquiera usa.

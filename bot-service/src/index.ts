@@ -19,7 +19,7 @@ process.on("unhandledRejection", (reason) => {
   logger.error({ err }, "Promesa rechazada sin manejar (unhandledRejection)");
 });
 
-const usuariosRepository = createUsuariosRepository(pool);
+const usuariosRepository = createUsuariosRepository(pool, env.patEncryptionKey);
 
 const app = await createServer({
   botToken: env.telegramBotToken,

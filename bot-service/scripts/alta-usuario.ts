@@ -39,20 +39,6 @@ function requerido(args: Record<string, string>, nombre: string): string {
   return valor;
 }
 
-/**
- * Placeholder explícito hasta que exista la historia 1.4 (cifrado +
- * persistencia). No escribe el PAT a disco, log ni tabla en ningún momento
- * (AC #5) -- lo recibe en memoria y lo descarta, avisando claramente que
- * todavía no hay dónde guardarlo de forma permanente.
- */
-const sinkPendienteDeHistoria14: PatSink = async (chatId) => {
-  console.warn(
-    `⚠️  Historia 1.4 (cifrado + persistencia del PAT) todavía no está implementada. ` +
-      `El PAT de chat_id ${chatId} se recibió en memoria y se descarta acá -- no queda ` +
-      `guardado en ningún lado. Repetir este paso una vez que 1.4 esté lista.`,
-  );
-};
-
 async function main(): Promise<void> {
   const [comando, ...rest] = process.argv.slice(2);
   const args = parseArgs(rest);
@@ -75,7 +61,7 @@ async function main(): Promise<void> {
 
     const pool = new Pool({ connectionString: env.databaseUrl });
     try {
-      const usuariosRepository = createUsuariosRepository(pool);
+      const usuariosRepository = createUsuariosRepository(pool, env.patEncryptionKey);
       const fireflyAdminClient = createFireflyAdminClient({
         baseUrl: env.fireflyAdminBaseUrl,
         ownerToken: env.fireflyAdminToken,
@@ -105,7 +91,15 @@ async function main(): Promise<void> {
       throw new Error("--chat-id debe ser numérico");
     }
 
-    await entregarPatUsuario(chatId, pat, administrador, sinkPendienteDeHistoria14);
+    const pool = new Pool({ connectionString: env.databaseUrl });
+    try {
+      const usuariosRepository = createUsuariosRepository(pool, env.patEncryptionKey);
+      const sink: PatSink = (idChat, patRecibido) => usuariosRepository.guardarPatCifrado(idChat, patRecibido);
+      await entregarPatUsuario(chatId, pat, administrador, sink);
+      console.log(`✅ PAT de chat_id ${chatId} cifrado (AES-256-GCM) y guardado en Postgres.`);
+    } finally {
+      await pool.end();
+    }
     return;
   }
 

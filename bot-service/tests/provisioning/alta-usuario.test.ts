@@ -12,6 +12,8 @@ function buildDeps(overrides?: {
   const usuariosRepository: UsuariosRepository = {
     findByChatId: overrides?.findByChatId ?? vi.fn().mockResolvedValue(null),
     crear: overrides?.crear ?? vi.fn().mockResolvedValue(undefined),
+    guardarPatCifrado: vi.fn().mockResolvedValue(undefined),
+    obtenerPatDescifrado: vi.fn().mockResolvedValue(null),
   };
   const fireflyAdminClient: FireflyAdminClient = {
     crearUsuario:

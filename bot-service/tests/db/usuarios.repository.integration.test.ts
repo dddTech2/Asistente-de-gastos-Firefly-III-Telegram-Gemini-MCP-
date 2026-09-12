@@ -6,6 +6,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createUsuariosRepository } from "../../src/db/usuarios.repository.js";
 import { isDockerAvailable, startTestPostgres, type TestPostgres } from "./testPostgresContainer.js";
 
+// Clave dummy de 32 bytes (64 hex) -- solo para tests, nunca un secreto real.
+const CLAVE_TEST = Buffer.from("0".repeat(64), "hex");
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MIGRATION_PATH = path.join(__dirname, "../../src/db/migrations/0001_create_usuarios_autorizados.sql");
 
@@ -55,7 +58,7 @@ describe.skipIf(!isDockerAvailable())("usuariosRepository (integración con Post
       [111, true, 222, false],
     );
 
-    const repo = createUsuariosRepository(client);
+    const repo = createUsuariosRepository(client, CLAVE_TEST);
 
     expect(await repo.findByChatId(111)).toEqual({ chatId: 111, activo: true });
     expect(await repo.findByChatId(222)).toEqual({ chatId: 222, activo: false });

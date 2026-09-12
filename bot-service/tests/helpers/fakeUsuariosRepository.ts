@@ -9,5 +9,8 @@ import type { UsuariosRepository } from "../../src/db/usuarios.repository.js";
 export function createAllowAllRepository(): UsuariosRepository {
   return {
     findByChatId: vi.fn().mockImplementation(async (chatId: number) => ({ chatId, activo: true })),
+    crear: vi.fn().mockResolvedValue(undefined),
+    guardarPatCifrado: vi.fn().mockResolvedValue(undefined),
+    obtenerPatDescifrado: vi.fn().mockResolvedValue(null),
   };
 }

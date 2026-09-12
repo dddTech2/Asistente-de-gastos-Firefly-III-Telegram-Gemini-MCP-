@@ -29,7 +29,12 @@ function textUpdate(updateId: number, chatId: number, text: string) {
 }
 
 function buildRepository(findByChatId: UsuariosRepository["findByChatId"]): UsuariosRepository {
-  return { findByChatId };
+  return {
+    findByChatId,
+    crear: vi.fn().mockResolvedValue(undefined),
+    guardarPatCifrado: vi.fn().mockResolvedValue(undefined),
+    obtenerPatDescifrado: vi.fn().mockResolvedValue(null),
+  };
 }
 
 async function buildBot(repository: UsuariosRepository) {
