@@ -19,6 +19,13 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 2.3 (ack asíncrono del webhook): implementada, pendiente de despliegue
+- **Decision:** el handler `createTelegramWebhookHandler` ahora responde `200 OK` inmediatamente después de `verifySecretToken` (2.1), y encola el `Update` crudo en una `InMemoryProcessingQueue<Update>` (nueva, `bot-service/src/queue/inMemoryProcessingQueue.ts`) cuyo processor es el mismo `bot.handleUpdate(update)` de antes — el eco de 2.2 y cualquier handler futuro no cambian su lógica, solo cuándo se disparan. Un `onError` de la cola loggea `update_id` + mensaje vía un logger JSON mínimo nuevo (`bot-service/src/logging/logger.ts`) sin tocar la respuesta HTTP ya enviada.
+- **Rationale:** se eligió una cola in-process FIFO con un solo consumidor secuencial (en vez de `setImmediate` suelto por update) para tener orden explícito y evitar drenados concurrentes, sin introducir Redis/BullMQ (AC #5 — eso es explícitamente de la historia 6.2). El logger es deliberadamente mínimo: cubre solo el requisito de diagnóstico de esta historia (AC #4), no anticipa el logging estructurado completo de 8.1.
+- **Verificación:** `npm run build` limpio; `npm test` → 14/14 (7 previos + 4 de `inMemoryProcessingQueue.test.ts` + 3 de `telegramWebhook.integration.test.ts`, estos últimos con `bot.handleUpdate` mockeado con delay para probar que el ack no espera el procesamiento — AC #1/#2/#3/#4 cubiertos). Falta desplegar en la VPS y confirmar que el bot sigue respondiendo sin regresiones antes de cerrar a `done` — a diferencia de 2.1/2.2, la estrategia de Testing de esta historia no exige una prueba manual explícita (es un cambio de timing interno, no de comportamiento observable).
+- **Made by:** dev agent (implementación de 2.3)
+- **Supersedes:** none
+
 ### 2026-09-12 — Historia 2.2 (echo del bot) cerrada — verificada en producción
 - **Decision:** usuario desplegó el código en la VPS (`git pull && npm install && npm run build && pm2 restart bot-service`) y confirmó comportamiento real: mensaje "hola" enviado al bot por Telegram → respuesta `Recibido: "hola"`. Verificación independiente adicional: `curl -X POST` al webhook sin `secret_token` tras el restart sigue devolviendo `401` (el restart no rompió la protección de 2.1).
 - **Made by:** dev agent (implementación de 2.2)

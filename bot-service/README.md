@@ -151,8 +151,30 @@ Sin lógica de negocio todavía — no interpreta el mensaje, no toca Firefly II
 Eso empieza en Epic 3 (integración directa) y Epic 5 (lenguaje natural con
 Gemini).
 
+## Ack inmediato + procesamiento asíncrono (historia 2.3)
+
+`POST /webhook/telegram` responde `200 OK` a Telegram apenas el `secret_token`
+se valida — **antes** de procesar el update (echo u otra lógica futura). El
+procesamiento real se desacopla del ciclo request/response con una cola en
+memoria (`src/queue/inMemoryProcessingQueue.ts`): FIFO, secuencial, sin
+persistencia. Esto evita que Telegram vea un timeout aunque lleguen varios
+mensajes al mismo tiempo o el procesamiento tarde.
+
+Es un mecanismo **provisional e in-process**, no la cola persistente (BullMQ +
+Redis) de la historia 6.2 — si el proceso se reinicia con items pendientes en
+la cola, esos items se pierden. Limitación aceptada al volumen actual (decenas
+de mensajes/día); se resuelve en Epic 6.
+
+Un error durante el procesamiento asíncrono de un update no afecta el `200`
+que ya se le envió a Telegram (que ya no reintenta ese update) — queda
+registrado como JSON estructurado en el log del proceso (`src/logging/logger.ts`,
+un logger mínimo con alcance acotado a este caso; el logging estructurado
+completo del servicio es la historia 8.1).
+
 ## Fuera de alcance de esta historia
 
-- Confirmar el webhook a Telegram de forma asíncrona con cola → historia 2.3.
+- Deduplicar updates repetidos por `update_id` → historia 6.1.
+- Reintentos con backoff ante fallos de Gemini/Firefly → historia 6.4.
+- Reemplazar la cola en memoria por una persistente (BullMQ + Redis) → historia 6.2.
 - Dockerizar el Bot Service / sumarlo a `infra/docker-compose.yml` → se evalúa
   junto con Redis/Postgres en la historia 0.3, no acá.
