@@ -138,9 +138,21 @@ curl -i -X POST https://bot.firefly.nyoholding.com/webhook/telegram \
 # esperado: 401
 ```
 
+## Echo de confirmación (historia 2.2)
+
+Cualquier mensaje de texto que le escribas al bot recibe como respuesta
+`Recibido: "{texto}"` — confirma que el pipeline completo (Telegram →
+webhook → secret_token → handler → `sendMessage`) funciona de punta a punta.
+Otros tipos de update (stickers, fotos, etc.) se ignoran sin romper nada:
+`bot.on("message:text", ...)` en `src/handlers/echoHandler.ts` solo dispara
+para mensajes con texto.
+
+Sin lógica de negocio todavía — no interpreta el mensaje, no toca Firefly III.
+Eso empieza en Epic 3 (integración directa) y Epic 5 (lenguaje natural con
+Gemini).
+
 ## Fuera de alcance de esta historia
 
-- Responder a los mensajes (echo) → historia 2.2.
 - Confirmar el webhook a Telegram de forma asíncrona con cola → historia 2.3.
 - Dockerizar el Bot Service / sumarlo a `infra/docker-compose.yml` → se evalúa
   junto con Redis/Postgres en la historia 0.3, no acá.

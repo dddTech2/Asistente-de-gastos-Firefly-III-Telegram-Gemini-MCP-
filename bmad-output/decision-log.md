@@ -19,6 +19,13 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 2.2 (echo del bot): implementada con filtro nativo de grammY, no parseo manual
+- **Decision:** implementado el eco usando `bot.on("message:text", ...)` de grammY (registrado en `telegramWebhook.ts` sobre el mismo `bot` de 2.1) en vez de parsear el `Update` crudo a mano como sugerían literalmente las Tasks/Subtasks de la historia. `src/handlers/echoHandler.ts` expone `formatEchoReply` (pura) y `registerEchoHandler`; `src/telegram/sendMessage.ts` es un envoltorio delgado sobre `bot.api.sendMessage` para poder mockearlo en tests.
+- **Rationale:** el filtro nativo de grammY ya conoce la forma completa del tipo `Update` de Telegram (mensajes, stickers, fotos, `edited_message`, `channel_post`, etc.), así que delegarle el filtrado cumple el AC #3 (no romper con updates no soportados) de forma más robusta que reimplementar ese parseo a mano, con menos superficie para bugs. El Dev Notes de la historia ya dejaba explícito que el "cómo" del echo quedaba a criterio de implementación — esto es una decisión de implementación, no un cambio de alcance ni de AC.
+- **Verificación:** 7/7 tests automatizados en verde (`bot.handleUpdate()` real con `bot.api.sendMessage` mockeado, no solo funciones puras aisladas) cubriendo AC #1/#2/#3 y un caso de múltiples chats. Falta la prueba manual real en producción (AC #4) — pendiente de deploy en VPS.
+- **Made by:** dev agent (implementación de 2.2)
+- **Supersedes:** none
+
 ### 2026-09-12 — Historia 2.1 (bot BotFather/webhook) cerrada — desplegada y verificada en VPS
 - **Decision:** completado el despliegue real: bot creado en `@BotFather`, subdominio elegido `bot.firefly.nyoholding.com` (DNS A ya apuntaba a la VPS), nginx vhost + `certbot --nginx` (mismo patrón que 0.2), Bot Service corriendo con `pm2` como proceso Node directo (sin Docker, igual que `nyoholding-contact-api`), y `npm run set-webhook` corrido con éxito.
 - **Verificación independiente (no solo el reporte del usuario):** `curl` desde fuera de la VPS confirmó: `http://bot.firefly.nyoholding.com` → `301` a `https://`; `https://` con TLS válido (sin `-k`) y `X-Powered-By: Express` en el 404 de `/` (confirma que el proxy llega al Bot Service real); `POST /webhook/telegram` sin el header `X-Telegram-Bot-Api-Secret-Token` → `401`; con header incorrecto → `401`. `git grep`/`git log -p` sobre `.env` confirmó que el token real nunca se commiteó.

@@ -1,5 +1,6 @@
 import type { Request, RequestHandler, Response } from "express";
 import type { Bot } from "grammy";
+import { registerEchoHandler } from "../handlers/echoHandler.js";
 
 /**
  * Siempre responde 200: Telegram reintenta el mismo update agresivamente ante
@@ -8,6 +9,8 @@ import type { Bot } from "grammy";
  * se registran en el `Bot` que se le inyecta a este handler.
  */
 export function createTelegramWebhookHandler(bot: Bot): RequestHandler {
+  registerEchoHandler(bot);
+
   return (req: Request, res: Response) => {
     bot
       .handleUpdate(req.body)

@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-12T03:40:00Z"
+last_updated: "2026-09-12T04:20:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -232,7 +232,7 @@ stories:
 - id: "2.2.bot-echo-response"
   title: "El bot responde algo al usuario para confirmar que funciona"
   epic_id: "epic-2"
-  status: backlog
+  status: in-progress
   file: "bmad-output/stories/2.2.bot-echo-response.story.md"
   parallel_set: 4
   dependencies:
@@ -563,11 +563,11 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 2
+    count: 1
     story_ids:
-    - "2.2.bot-echo-response"
     - "8.1.logs-estructurados"
-  handoff_notes: "0.1, 0.2, 1.2 y 2.1 done. 2.1 (bot BotFather/webhook) desplegado y verificado en VPS:\
-    \ bot creado, subdominio bot.firefly.nyoholding.com con nginx+certbot, secret_token validado en\
-    \ produccion (401 sin header/con header incorrecto), webhook registrado sin errores. Desbloqueadas\
-    \ 2.2 (bot-echo-response) y 8.1 (logs-estructurados). 1.3 aun bloqueada por 1.1 (backlog)."
+  handoff_notes: "0.1, 0.2, 1.2 y 2.1 done. 2.2 (bot-echo-response) en in-progress: echo implementado\
+    \ con bot.on('message:text') de grammY, 7/7 tests automatizados en verde (build limpio); falta el\
+    \ deploy en VPS (git pull + build + pm2 restart) y una prueba manual real mandandole un mensaje al\
+    \ bot para cerrar AC #1/#2/#4. 8.1 (logs-estructurados) sigue ready-for-dev. 1.3 aun bloqueada por\
+    \ 1.1 (backlog)."
