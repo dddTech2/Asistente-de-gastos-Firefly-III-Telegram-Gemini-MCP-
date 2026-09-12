@@ -62,11 +62,16 @@ directo (con `pm2` o el gestor de procesos que ya uses para `contact-api`).
 ```bash
 cd /opt/Asistente-de-gastos-Firefly-III-Telegram-Gemini-MCP-/bot-service
 npm install
-cp .env.example .env   # completar TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET, PUBLIC_URL
+cp .env.example .env   # completar TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET, PUBLIC_URL, DATABASE_URL
+npm run migrate         # crea usuarios_autorizados (historia 1.1) -- ver más abajo
 npm run build
 pm2 start dist/index.js --name bot-service
 pm2 save
 ```
+
+`DATABASE_URL`/`REDIS_URL` apuntan al Postgres/Redis de la historia 0.3 (mismas
+credenciales/puertos que `infra/.env`) — sin `DATABASE_URL` el proceso no
+arranca (ver sección de whitelist más abajo).
 
 `PORT` en `.env` default `3001` — usar el mismo puerto en el server block de
 nginx del paso 3. Ajustar si `3001` ya está ocupado por otro proyecto de la VPS.
@@ -167,9 +172,8 @@ de mensajes/día); se resuelve en Epic 6.
 
 Un error durante el procesamiento asíncrono de un update no afecta el `200`
 que ya se le envió a Telegram (que ya no reintenta ese update) — queda
-registrado como JSON estructurado en el log del proceso (`src/logging/logger.ts`,
-un logger mínimo con alcance acotado a este caso; el logging estructurado
-completo del servicio es la historia 8.1).
+registrado como JSON estructurado en el log del proceso (`src/lib/logger.ts`,
+historia 8.1).
 
 ## Logs estructurados (historia 8.1)
 
@@ -200,8 +204,57 @@ procesado, error) y excepciones/rechazos no controlados a nivel de proceso
 existen en el código — cuando se construyan deben loggear con el mismo
 `logger` central, no reintroducir `console.log`.
 
+## Whitelist de chat_id (historia 1.1)
+
+El bot solo responde a `chat_id` de Telegram dados de alta y activos en la
+tabla `usuarios_autorizados` (Postgres dedicado de la historia 0.3). Es lo
+**primero** que corre en el pipeline de grammY (`bot.use(...)` antes que
+`registerEchoHandler` en `src/webhook/telegramWebhook.ts`) — un `chat_id` no
+autorizado nunca llega al eco ni a ninguna lógica futura (Firefly/Gemini/MCP).
+
+**Aplicar la migración** (una sola tabla, sin `pat_cifrado` todavía — eso es
+la historia 1.4) contra el Postgres de la 0.3:
+
+```bash
+cd bot-service
+npm run migrate
+```
+
+Lee todos los `.sql` de `src/db/migrations/` en orden y los aplica contra
+`DATABASE_URL`. Es seguro correrlo más de una vez (cada archivo usa
+`CREATE TABLE IF NOT EXISTS`).
+
+**Dar de alta el primer chat_id** (el tuyo) — no existe todavía un flujo de
+alta real (eso es la historia 1.3, bloqueada por el spike 1.2), así que por
+ahora es un `INSERT` manual. Tu `chat_id` lo podés ver hablándole a
+[@userinfobot](https://t.me/userinfobot) en Telegram:
+
+```bash
+psql "$DATABASE_URL" -c "INSERT INTO usuarios_autorizados (chat_id, activo) VALUES (<tu_chat_id>, true);"
+```
+
+**Comportamiento:**
+- `chat_id` no registrado, o registrado con `activo = false` → el bot responde
+  "No autorizado. Este bot es de uso privado." y no ejecuta nada más para ese
+  mensaje (ni el eco, ni nada futuro).
+- `chat_id` registrado y activo → el mensaje sigue normalmente hacia el resto
+  del pipeline.
+- Si Postgres no responde (`DATABASE_URL` mal configurado, servicio caído),
+  el middleware **falla cerrado**: niega el acceso en vez de dejarlo pasar —
+  el aislamiento entre usuarios es el requisito no funcional más crítico del
+  proyecto, así que un fallo de infraestructura nunca debe traducirse en
+  acceso no controlado.
+- Cada intento (autorizado o no) queda logueado con `chat_id` + resultado —
+  nunca el texto del mensaje ni datos de otros usuarios.
+
+`DATABASE_URL` es ahora una variable **requerida**: el proceso no arranca sin
+ella (`src/config/env.ts`), consistente con que la whitelist es la primera
+barrera de seguridad, no algo opcional.
+
 ## Fuera de alcance de esta historia
 
+- El flujo de alta real de usuarios (`/start`, comando, etc.) → historia 1.3.
+- PAT cifrado por usuario → historia 1.4.
 - Deduplicar updates repetidos por `update_id` → historia 6.1.
 - Reintentos con backoff ante fallos de Gemini/Firefly → historia 6.4.
 - Reemplazar la cola en memoria por una persistente (BullMQ + Redis) → historia 6.2.

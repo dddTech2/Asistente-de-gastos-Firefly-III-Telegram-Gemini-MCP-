@@ -1,6 +1,8 @@
 import type { Request, RequestHandler, Response } from "express";
 import type { Bot } from "grammy";
 import type { Update } from "grammy/types";
+import { createWhitelistMiddleware } from "../auth/whitelistMiddleware.js";
+import type { UsuariosRepository } from "../db/usuarios.repository.js";
 import { registerEchoHandler } from "../handlers/echoHandler.js";
 import { InMemoryProcessingQueue } from "../queue/inMemoryProcessingQueue.js";
 import { logger } from "../lib/logger.js";
@@ -38,8 +40,13 @@ function extractLogContext(update: unknown): { update_id?: number; chat_id?: num
  * lleguen varios updates a la vez. El procesamiento real se desacopla del
  * ciclo request/response vía `InMemoryProcessingQueue`; un error ahí ya no
  * puede tocar la respuesta HTTP (AC #4), solo se loggea (historia 8.1).
+ *
+ * El middleware de whitelist (historia 1.1) se registra ANTES que cualquier
+ * handler de negocio (echo, futuro Firefly/Gemini/MCP) — en grammY, si no
+ * llama a `next()`, el resto de la cadena no corre para ese update (AC #4).
  */
-export function createTelegramWebhookHandler(bot: Bot): RequestHandler {
+export function createTelegramWebhookHandler(bot: Bot, usuariosRepository: UsuariosRepository): RequestHandler {
+  bot.use(createWhitelistMiddleware(bot, usuariosRepository));
   registerEchoHandler(bot);
 
   const queue = new InMemoryProcessingQueue<Update>(

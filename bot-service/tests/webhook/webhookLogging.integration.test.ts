@@ -4,6 +4,7 @@ import request from "supertest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { logger } from "../../src/lib/logger.js";
 import { createTelegramWebhookHandler } from "../../src/webhook/telegramWebhook.js";
+import { createAllowAllRepository } from "../helpers/fakeUsuariosRepository.js";
 
 const FAKE_TOKEN = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11";
 const FAKE_BOT_INFO = {
@@ -38,7 +39,7 @@ async function buildApp() {
   await bot.init();
   const app = express();
   app.use(express.json());
-  app.post("/webhook/telegram", createTelegramWebhookHandler(bot));
+  app.post("/webhook/telegram", createTelegramWebhookHandler(bot, createAllowAllRepository()));
   return { app, bot };
 }
 

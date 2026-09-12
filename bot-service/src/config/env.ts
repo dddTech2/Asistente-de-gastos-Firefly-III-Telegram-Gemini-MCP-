@@ -14,4 +14,8 @@ export const env = {
   webhookPath: process.env.WEBHOOK_PATH || "/webhook/telegram",
   publicUrl: process.env.PUBLIC_URL || "",
   port: Number(process.env.PORT) || 3000,
+  // Requerido (no opcional): la whitelist de la historia 1.1 es la primera
+  // barrera de aislamiento entre usuarios — el proceso no debe arrancar sin
+  // poder consultarla.
+  databaseUrl: required("DATABASE_URL"),
 };

@@ -66,7 +66,7 @@ lógica custom.
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 1.1 | whitelist-chat-id | El bot solo responde a `chat_id` registrados | ready-for-dev — 0.3 (Postgres del bot) ya cerrada, sin bloqueos |
+| 1.1 | whitelist-chat-id | El bot solo responde a `chat_id` registrados | in-progress — middleware grammY + tabla usuarios_autorizados, 39/39 tests locales, pendiente desplegar y confirmar en vivo |
 | 1.2 | spike-provisionamiento-pat | Spike: confirmar si el PAT se genera vía API admin o requiere login manual | done — confirmado por código fuente: solo login manual, variante semi-manual para 1.3 |
 | 1.3 | alta-usuario-firefly | Flujo controlado de alta de cuentas Firefly III | ready-for-dev |
 | 1.4 | pat-cifrado-postgres | Guardar el PAT de cada usuario cifrado en Postgres vinculado a `chat_id` | ready-for-dev |

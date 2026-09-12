@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-12T11:00:00Z"
+last_updated: "2026-09-12T12:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -158,7 +158,7 @@ stories:
 - id: "1.1.whitelist-chat-id"
   title: "El bot solo responde a chat_id registrados (whitelist)"
   epic_id: "epic-1"
-  status: ready-for-dev
+  status: in-progress
   file: "bmad-output/stories/1.1.whitelist-chat-id.story.md"
   parallel_set: 4
   dependencies:
@@ -563,11 +563,13 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 1
-    story_ids:
-    - "1.1.whitelist-chat-id"
-  handoff_notes: "0.1, 0.2, 0.3, 1.2, 2.1, 2.2, 2.3 y 8.1 done. 0.3 verificada en produccion:\
-    \ psql/redis-cli conectan (AC #1/#2), ss confirma bot-postgres/bot-redis bindeados solo a\
-    \ 127.0.0.1 (AC #5), down+up sin perdida de datos (AC #4). Ya no hay ningun bloqueo para 1.1\
-    \ (whitelist-chat-id) -- unico item ready-for-dev, siguiente paso natural. 1.3 sigue bloqueada\
-    \ por 1.1 (aun no implementada)."
+    count: 0
+    story_ids: []
+  handoff_notes: "0.1, 0.2, 0.3, 1.2, 2.1, 2.2, 2.3 y 8.1 done. 1.1 (whitelist-chat-id) in-progress:\
+    \ middleware nativo de grammY (bot.use, antes de cualquier handler de negocio), tabla\
+    \ usuarios_autorizados + migracion idempotente + script npm run migrate, repositorio\
+    \ parametrizado, fail-closed si Postgres falla. 39/39 tests locales en verde + 2 tests de\
+    \ integracion con Postgres real via Docker efimero que se saltean en este entorno (sin daemon\
+    \ Docker) pero corren completos en la VPS. Pendiente desplegar, migrar, sembrar el primer\
+    \ chat_id y confirmar en vivo antes de cerrar a done. Ready_for_dev vacio hasta que cierre 1.1\
+    \ (desbloquea 1.3)."

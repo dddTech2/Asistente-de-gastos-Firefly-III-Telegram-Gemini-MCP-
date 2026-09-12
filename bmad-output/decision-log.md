@@ -19,6 +19,14 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 1.1 (whitelist de chat_id): implementada, pendiente de despliegue
+- **Decision:** whitelist implementada como middleware nativo de grammY (`bot.use(createWhitelistMiddleware(bot, repo))`), registrado antes que cualquier handler de negocio en `telegramWebhook.ts` — grammY ya corta la cadena de middlewares si no se llama `next()`, así que AC #2/#3/#4 salen del propio framework en vez de un pipeline propio a medida. Tabla `usuarios_autorizados` (Postgres de la 0.3) vía migración idempotente (`CREATE TABLE IF NOT EXISTS`) + `npm run migrate` nuevo (no estaba en el Owned Scope original, pero evita aplicar SQL a mano en cada deploy — mismo criterio que `npm run set-webhook`).
+- **Bug encontrado y corregido en desarrollo:** la versión inicial usaba `ctx.reply(...)` para el mensaje de "no autorizado" y los tests fallaban con `401 Unauthorized` real contra la API de Telegram — grammY crea una instancia de `Api` nueva por cada update dentro de `handleUpdate` (no reutiliza `bot.api`), así que mockear `bot.api.sendMessage` no interceptaba `ctx.reply`. Se corrigió reutilizando `sendTelegramMessage(bot, chatId, texto)`, el mismo wrapper que `echoHandler.ts` ya usa desde la historia 2.2 por este exact motivo.
+- **Fail closed:** si la consulta a Postgres lanza una excepción, el middleware niega el acceso (no llama a `next()`) en vez de dejarlo pasar — el Dev Notes de la historia lo pedía explícitamente dado que el aislamiento entre usuarios es el NFR más crítico del proyecto.
+- **Verificación:** `npm run build` limpio; `npm test` → 39/39 en verde + 2 tests de integración con un Postgres real efímero (Docker) que se saltan automáticamente en este entorno (sin daemon Docker alcanzable) pero correrán completos en la VPS. `npm audit`: `pg` no suma vulnerabilidades nuevas.
+- **Made by:** dev agent (implementación de 1.1)
+- **Supersedes:** none
+
 ### 2026-09-12 — Historia 0.3 (Postgres/Redis del bot) cerrada — verificada en producción
 - **Decision:** usuario desplegó `bot-postgres`/`bot-redis` en la VPS y confirmó los tres AC pendientes: conectividad (`psql`/`redis-cli` responden `1`/`PONG` desde un contenedor auxiliar en `firefly-iii-net`), aislamiento (`ss -tlnp` confirma ambos puertos bindeados a `127.0.0.1`, no a `0.0.0.0`/`:::`) y persistencia (`docker compose down && up -d` sin pérdida de datos).
 - **Made by:** dev agent (implementación de 0.3)
