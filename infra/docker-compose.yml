@@ -1,14 +1,15 @@
-# Firefly III — stack base (historia 0.1)
+# Firefly III — stack base (historia 0.1) + reverse proxy HTTPS (historia 0.2)
 #
-# Dos servicios: la app de Firefly III y su base de datos (MariaDB), con un
-# volumen nombrado persistente para los datos. HTTPS/reverse proxy se agrega
-# en la historia 0.2; Redis/Postgres del Bot Service se agregan en la 0.3.
+# Servicios: la app de Firefly III, su base de datos (MariaDB), y Nginx Proxy
+# Manager como reverse proxy con HTTPS/Let's Encrypt automático delante de
+# Firefly. Redis/Postgres del Bot Service se agregan en la 0.3.
 #
 # Uso:
 #   cp .env.example .env   # completar valores reales, nunca commitear .env
 #   docker compose up -d
 #
-# Ver infra/README.md para instrucciones de instalación y generación de APP_KEY.
+# Ver infra/README.md para instrucciones de instalación, generación de APP_KEY
+# y configuración del proxy host + certificado en Nginx Proxy Manager.
 
 services:
   firefly-iii-db:
@@ -46,6 +47,11 @@ services:
       APP_KEY: ${APP_KEY}
       APP_URL: ${APP_URL}
       TZ: ${TZ:-UTC}
+    # TEMPORAL — se retira este mapeo de puerto directo una vez validado que
+    # Nginx Proxy Manager sirve Firefly III por HTTPS (AC #4 de la historia
+    # 0.2: "el puerto interno no queda expuesto directamente al exterior").
+    # No lo quites hasta confirmar que el Proxy Host + certificado funcionan,
+    # para no perder acceso al sistema en el medio.
     ports:
       - "${FIREFLY_HTTP_PORT:-8081}:8080"
     volumes:
@@ -56,11 +62,29 @@ services:
     networks:
       - firefly-iii-net
 
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - "80:80"    # requerido por el challenge HTTP-01 de Let's Encrypt
+      - "443:443"
+      - "${NPM_ADMIN_PORT:-81}:81"   # UI de administración
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    networks:
+      - firefly-iii-net
+
 volumes:
   firefly_iii_db:
     name: firefly_iii_db
   firefly_iii_upload:
     name: firefly_iii_upload
+  npm_data:
+    name: npm_data
+  npm_letsencrypt:
+    name: npm_letsencrypt
 
 networks:
   firefly-iii-net:

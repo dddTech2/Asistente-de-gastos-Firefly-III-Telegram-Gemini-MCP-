@@ -33,8 +33,8 @@ accesibles de forma segura, como fundación de todo lo demás.
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 0.1 | firefly-docker-compose | Desplegar Firefly III + Postgres/MariaDB con Docker Compose | ready-for-dev |
-| 0.2 | reverse-proxy-https | Reverse proxy con HTTPS automático | ready-for-dev |
+| 0.1 | firefly-docker-compose | Desplegar Firefly III + Postgres/MariaDB con Docker Compose | done |
+| 0.2 | reverse-proxy-https | Reverse proxy con HTTPS automático | en revisión — puertos 80/443 del VPS ya ocupados por otro nginx, pendiente diagnóstico |
 | 0.3 | redis-postgres-servicios | Redis y Postgres como servicios separados del bot | ready-for-dev |
 | 0.4 | backups-automaticos | Backups automáticos diarios de toda la base de datos | ready-for-dev |
 | 0.5 | prueba-restauracion-backup | Probar una restauración completa desde backup | ready-for-dev |

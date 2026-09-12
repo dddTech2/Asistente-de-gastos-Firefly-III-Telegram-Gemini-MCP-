@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-11T21:57:17Z"
+last_updated: "2026-09-12T00:09:32Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -97,7 +97,7 @@ stories:
 - id: "0.1.firefly-docker-compose"
   title: "Desplegar Firefly III + Postgres/MariaDB con Docker Compose"
   epic_id: "epic-0"
-  status: ready-for-dev
+  status: done
   file: "bmad-output/stories/0.1.firefly-docker-compose.story.md"
   parallel_set: 1
   dependencies: []
@@ -171,7 +171,7 @@ stories:
 - id: "1.2.spike-provisionamiento-pat"
   title: "Spike: PAT vía API admin o login manual"
   epic_id: "epic-1"
-  status: backlog
+  status: ready-for-dev
   file: "bmad-output/stories/1.2.spike-provisionamiento-pat.story.md"
   parallel_set: 2
   dependencies:
@@ -565,6 +565,8 @@ sequencing_summary:
   ready_for_dev:
     count: 1
     story_ids:
-    - "0.1.firefly-docker-compose"
-  handoff_notes: "Wave 1 (1 historias) puede despacharse ya: 0.1.firefly-docker-compose. Owned Scope verificado\
-    \ sin conflictos dentro de cada wave (ver bmad-output/decision-log.md, entrada de sprint-planning)."
+    - "1.2.spike-provisionamiento-pat"
+  handoff_notes: "0.1 done (desplegado y validado en VPS). 1.2 (spike PAT) desbloqueada. 0.2 (reverse-proxy-https)\
+    \ en revision: el VPS ya aloja ~10 proyectos previos compartiendo el mismo host (puertos 80/443 ya\
+    \ ocupados por otro nginx) -- pendiente de diagnostico antes de desplegar el reverse proxy y marcarla\
+    \ ready-for-dev."
