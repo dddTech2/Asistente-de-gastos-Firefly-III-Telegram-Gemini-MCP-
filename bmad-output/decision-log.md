@@ -19,6 +19,11 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 0.3 (Postgres/Redis del bot) cerrada — verificada en producción
+- **Decision:** usuario desplegó `bot-postgres`/`bot-redis` en la VPS y confirmó los tres AC pendientes: conectividad (`psql`/`redis-cli` responden `1`/`PONG` desde un contenedor auxiliar en `firefly-iii-net`), aislamiento (`ss -tlnp` confirma ambos puertos bindeados a `127.0.0.1`, no a `0.0.0.0`/`:::`) y persistencia (`docker compose down && up -d` sin pérdida de datos).
+- **Made by:** dev agent (implementación de 0.3)
+- **Supersedes:** la entrada anterior de 0.3 (código completo, despliegue pendiente) — ahora `done`. Con esto queda sin bloqueos la historia 1.1 (whitelist-chat-id).
+
 ### 2026-09-12 — Historia 0.3 (Postgres/Redis del bot) adelantada — bloqueo real detectado en 1.1
 - **Decision:** al ir a implementar 1.1 (whitelist-chat-id) se detectó que depende de un Postgres dedicado al Bot Service que no existe — Firefly III usa MariaDB (historia 0.1), no hay ningún Postgres en la VPS. Se le presentó la disyuntiva al usuario (implementar 0.3 primero vs. reabrir 1.1 en planning para no requerir Postgres) y eligió resolver 0.3 primero, sin tocar los AC de 1.1. Se agregaron `bot-postgres` (postgres:16-alpine) y `bot-redis` (redis:7-alpine) a `infra/docker-compose.yml`.
 - **Desviación documentada:** ambos servicios se publican en `127.0.0.1:<puerto>` (no solo en la red Docker interna, como una lectura literal del AC #5 sugeriría) porque el Bot Service corre como proceso `pm2` en el host, fuera de este compose — mismo patrón ya verificado en producción para Firefly III en la historia 0.1. Sin este ajuste, la infraestructura quedaría inalcanzable para su único consumidor real.

@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-12T10:00:00Z"
+last_updated: "2026-09-12T11:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -122,7 +122,7 @@ stories:
 - id: "0.3.redis-postgres-servicios"
   title: "Redis y Postgres como servicios separados del bot"
   epic_id: "epic-0"
-  status: in-progress
+  status: done
   file: "bmad-output/stories/0.3.redis-postgres-servicios.story.md"
   parallel_set: 3
   dependencies:
@@ -566,12 +566,8 @@ sequencing_summary:
     count: 1
     story_ids:
     - "1.1.whitelist-chat-id"
-  handoff_notes: "0.1, 0.2, 1.2, 2.1, 2.2, 2.3 y 8.1 done. Corregida inconsistencia: 1.1 ya estaba\
-    \ completamente redactada (status ready-for-dev en su propio archivo) pero este YAML la tenia\
-    \ como backlog. Al ir a implementar 1.1 se detecto que depende de 0.3 (Postgres/Redis dedicados\
-    \ al bot), que no existia -- Firefly usa MariaDB, no hay Postgres en la VPS. Usuario eligio\
-    \ resolver 0.3 primero. 0.3 in-progress: servicios agregados a infra/docker-compose.yml\
-    \ (bot-postgres, bot-redis, publicados solo en 127.0.0.1 porque el Bot Service corre en pm2\
-    \ fuera de Docker), validado con 'docker compose config' (sin levantar el stack, regla del\
-    \ proyecto); pendiente desplegar en la VPS y correr la verificacion de conectividad antes de\
-    \ cerrar a done. Una vez cerrada 0.3, seguir con 1.1 (ya lista, sin bloqueos)."
+  handoff_notes: "0.1, 0.2, 0.3, 1.2, 2.1, 2.2, 2.3 y 8.1 done. 0.3 verificada en produccion:\
+    \ psql/redis-cli conectan (AC #1/#2), ss confirma bot-postgres/bot-redis bindeados solo a\
+    \ 127.0.0.1 (AC #5), down+up sin perdida de datos (AC #4). Ya no hay ningun bloqueo para 1.1\
+    \ (whitelist-chat-id) -- unico item ready-for-dev, siguiente paso natural. 1.3 sigue bloqueada\
+    \ por 1.1 (aun no implementada)."
