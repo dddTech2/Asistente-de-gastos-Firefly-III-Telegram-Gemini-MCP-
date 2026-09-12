@@ -49,6 +49,12 @@ services:
       APP_KEY: ${APP_KEY}
       APP_URL: ${APP_URL}
       TZ: ${TZ:-UTC}
+      # Sin esto, Laravel ignora el header X-Forwarded-Proto que manda el
+      # nginx del host y genera URLs/redirects en HTTP aunque el usuario
+      # entre por HTTPS. Seguro dejarlo en "**" (confiar en cualquier
+      # proxy) porque el puerto solo es alcanzable desde 127.0.0.1 -- nada
+      # externo puede pegarle directo al contenedor para falsear el header.
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-**}
     # Publicado solo en localhost -- el nginx del sistema operativo (fuera de
     # este compose) es quien lo expone al público por HTTPS. Nunca publicar
     # en 0.0.0.0 acá: en esta VPS el puerto 80/443 público ya pertenece al
