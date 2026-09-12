@@ -19,6 +19,21 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 1.3 (alta de usuario Firefly III) cerrada — verificada en producción
+- **Decision:** usuario corrió ambos comandos contra la VPS real. `crear` (con un `chat_id` de
+  prueba `999000001`, no un chat real de Telegram porque el comando no envía nada a Telegram)
+  creó la cuenta en Firefly III (`id=2`) y habilitó el `chat_id` en `usuarios_autorizados`; el
+  log estructurado mostró `{administrador, chat_id, firefly_user_id}` sin PAT. `completar-pat`
+  con un PAT falso confirmó que el valor nunca aparece en el log ni se persiste en ningún lado
+  (placeholder hasta 1.4). Datos de prueba limpiados después (fila borrada, cuenta Firefly de
+  prueba borrada a mano).
+- **Housekeeping:** `sprint-status.yaml` tenía `1.4.pat-cifrado-postgres` como `backlog` pese a
+  que su propio archivo ya la redacta como `ready-for-dev` — mismo patrón de inconsistencia visto
+  con 1.1 y 1.3 anteriormente. Corregido: 1.4 queda como único `ready-for-dev` (sus dependencias
+  1.1 y 1.3 ya están `done`).
+- **Made by:** dev agent (implementación de 1.3)
+- **Supersedes:** la entrada anterior de 1.3 (código completo, despliegue pendiente) — ahora `done`.
+
 ### 2026-09-12 — Historia 1.3 (alta de usuario Firefly III): implementada, pendiente de despliegue
 - **Decision:** implementada la variante **semi-manual** confirmada por el spike 1.2 (Firefly III
   no puede generar un PAT en nombre de otro usuario vía API admin). `firefly-admin-client.ts`

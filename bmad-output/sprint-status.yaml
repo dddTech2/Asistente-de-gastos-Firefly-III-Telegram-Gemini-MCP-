@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-12T14:30:00Z"
+last_updated: "2026-09-12T16:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -181,7 +181,7 @@ stories:
 - id: "1.3.alta-usuario-firefly"
   title: "Flujo controlado de alta de cuentas Firefly III"
   epic_id: "epic-1"
-  status: in-progress
+  status: done
   file: "bmad-output/stories/1.3.alta-usuario-firefly.story.md"
   parallel_set: 5
   dependencies:
@@ -194,7 +194,7 @@ stories:
 - id: "1.4.pat-cifrado-postgres"
   title: "PAT cifrado en Postgres vinculado a chat_id"
   epic_id: "epic-1"
-  status: backlog
+  status: ready-for-dev
   file: "bmad-output/stories/1.4.pat-cifrado-postgres.story.md"
   parallel_set: 6
   dependencies:
@@ -563,12 +563,14 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 0
-    story_ids: []
-  handoff_notes: "0.1, 0.2, 0.3, 1.1, 1.2, 2.1, 2.2, 2.3 y 8.1 done. 1.3 (alta-usuario-firefly)\
-    \ en in-progress: variante semi-manual implementada (confirmada por el spike 1.2 -- Firefly\
-    \ III no puede generar un PAT en nombre de otro usuario vía API). Codigo + 51 tests unitarios\
-    \ en verde localmente, pendiente de que el administrador ejecute 'npm run alta-usuario' en la\
-    \ VPS contra Firefly III real y confirme el alta de un usuario de prueba antes de cerrarla.\
-    \ Nota operativa (de 1.1): la VPS no tiene psql en el host, hay que usar 'docker exec\
-    \ bot-postgres psql' (documentado en bot-service/README.md)."
+    count: 1
+    story_ids:
+    - "1.4.pat-cifrado-postgres"
+  handoff_notes: "0.1, 0.2, 0.3, 1.1, 1.2, 1.3, 2.1, 2.2, 2.3 y 8.1 done. 1.3 (alta-usuario-firefly)\
+    \ verificada en produccion: 'npm run alta-usuario -- crear' creo la cuenta en Firefly III y\
+    \ habilito el chat_id en la whitelist; 'completar-pat' confirmo que el PAT nunca queda\
+    \ logueado ni persistido (1.4 todavia no existe, hoy es un placeholder que lo descarta en\
+    \ memoria). 1.4 (pat-cifrado-postgres) es ahora el unico ready-for-dev: sus dos dependencias\
+    \ (1.1, 1.3) ya estan done -- va a reemplazar ese placeholder por el sink real de\
+    \ cifrado/persistencia. Nota operativa (de 1.1): la VPS no tiene psql en el host, hay que usar\
+    \ 'docker exec bot-postgres psql' (documentado en bot-service/README.md)."
