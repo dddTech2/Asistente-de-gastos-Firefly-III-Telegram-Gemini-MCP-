@@ -19,6 +19,14 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 0.3 (Postgres/Redis del bot) adelantada — bloqueo real detectado en 1.1
+- **Decision:** al ir a implementar 1.1 (whitelist-chat-id) se detectó que depende de un Postgres dedicado al Bot Service que no existe — Firefly III usa MariaDB (historia 0.1), no hay ningún Postgres en la VPS. Se le presentó la disyuntiva al usuario (implementar 0.3 primero vs. reabrir 1.1 en planning para no requerir Postgres) y eligió resolver 0.3 primero, sin tocar los AC de 1.1. Se agregaron `bot-postgres` (postgres:16-alpine) y `bot-redis` (redis:7-alpine) a `infra/docker-compose.yml`.
+- **Desviación documentada:** ambos servicios se publican en `127.0.0.1:<puerto>` (no solo en la red Docker interna, como una lectura literal del AC #5 sugeriría) porque el Bot Service corre como proceso `pm2` en el host, fuera de este compose — mismo patrón ya verificado en producción para Firefly III en la historia 0.1. Sin este ajuste, la infraestructura quedaría inalcanzable para su único consumidor real.
+- **Housekeeping:** se corrigió `sprint-status.yaml`, que tenía a `1.1.whitelist-chat-id` marcada como `backlog` cuando su propio archivo de historia ya estaba completamente redactado (`ready-for-dev`) — inconsistencia entre los dos artefactos de planning, ahora alineados.
+- **Verificación:** `docker compose config` (con un `.env` temporal desde `.env.example`, nunca commiteado) confirma que el YAML resuelve sin errores de sintaxis/interpolación. Sin levantar el stack — regla del proyecto: Docker/compose de Firefly (y ahora de esta historia) solo corre en la VPS remota. Falta desplegar y correr la verificación de conectividad/aislamiento de `infra/README.md` antes de cerrar a `done`.
+- **Made by:** dev agent (implementación de 0.3, en el flujo de resolver 1.1)
+- **Supersedes:** none
+
 ### 2026-09-12 — Historia 8.1 (logs estructurados) cerrada — verificada en producción
 - **Decision:** usuario desplegó en la VPS (`git pull && npm install && npm run build && pm2 restart bot-service`) y confirmó vía `pm2 logs bot-service` que la salida es JSON estructurado real, con `update_id`/`chat_id` correlacionables — cierra el AC #5 (stdout/stderr, sin infraestructura adicional) de forma concreta, no solo por tests locales.
 - **Made by:** dev agent (implementación de 8.1)

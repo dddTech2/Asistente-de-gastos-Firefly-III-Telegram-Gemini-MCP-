@@ -35,7 +35,7 @@ accesibles de forma segura, como fundación de todo lo demás.
 |------|------|--------|--------|
 | 0.1 | firefly-docker-compose | Desplegar Firefly III + Postgres/MariaDB con Docker Compose | done |
 | 0.2 | reverse-proxy-https | Reverse proxy con HTTPS automático | done — vía nginx del sistema operativo + certbot, no un contenedor nuevo |
-| 0.3 | redis-postgres-servicios | Redis y Postgres como servicios separados del bot | ready-for-dev |
+| 0.3 | redis-postgres-servicios | Redis y Postgres como servicios separados del bot | in-progress — bot-postgres/bot-redis agregados a docker-compose.yml (127.0.0.1, validado con `docker compose config`), pendiente desplegar y verificar en la VPS |
 | 0.4 | backups-automaticos | Backups automáticos diarios de toda la base de datos | ready-for-dev |
 | 0.5 | prueba-restauracion-backup | Probar una restauración completa desde backup | ready-for-dev |
 
@@ -66,7 +66,7 @@ lógica custom.
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 1.1 | whitelist-chat-id | El bot solo responde a `chat_id` registrados | ready-for-dev |
+| 1.1 | whitelist-chat-id | El bot solo responde a `chat_id` registrados | ready-for-dev — bloqueada por 0.3 (Postgres del bot), en progreso |
 | 1.2 | spike-provisionamiento-pat | Spike: confirmar si el PAT se genera vía API admin o requiere login manual | done — confirmado por código fuente: solo login manual, variante semi-manual para 1.3 |
 | 1.3 | alta-usuario-firefly | Flujo controlado de alta de cuentas Firefly III | ready-for-dev |
 | 1.4 | pat-cifrado-postgres | Guardar el PAT de cada usuario cifrado en Postgres vinculado a `chat_id` | ready-for-dev |

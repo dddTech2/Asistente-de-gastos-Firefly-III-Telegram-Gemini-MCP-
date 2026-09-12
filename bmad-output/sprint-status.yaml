@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-12T09:00:00Z"
+last_updated: "2026-09-12T10:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -122,7 +122,7 @@ stories:
 - id: "0.3.redis-postgres-servicios"
   title: "Redis y Postgres como servicios separados del bot"
   epic_id: "epic-0"
-  status: backlog
+  status: in-progress
   file: "bmad-output/stories/0.3.redis-postgres-servicios.story.md"
   parallel_set: 3
   dependencies:
@@ -158,7 +158,7 @@ stories:
 - id: "1.1.whitelist-chat-id"
   title: "El bot solo responde a chat_id registrados (whitelist)"
   epic_id: "epic-1"
-  status: backlog
+  status: ready-for-dev
   file: "bmad-output/stories/1.1.whitelist-chat-id.story.md"
   parallel_set: 4
   dependencies:
@@ -563,11 +563,15 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 0
-    story_ids: []
-  handoff_notes: "0.1, 0.2, 1.2, 2.1, 2.2, 2.3 y 8.1 done. 8.1 (logs-estructurados) verificada en\
-    \ produccion: pm2 logs bot-service confirma salida JSON real con update_id/chat_id. Gemini/MCP\
-    \ quedan sin instrumentar porque esos modulos aun no existen (Epic 4/5); cuando se construyan\
-    \ deben usar src/lib/logger.ts. Ready_for_dev vacio: no hay ningun item compilado y desbloqueado\
-    \ ahora mismo. Proximo trabajo razonable: compilar 1.1.whitelist-chat-id (hoy en backlog, sin\
-    \ elaborar) para desbloquear 1.3 y avanzar Epic 1."
+    count: 1
+    story_ids:
+    - "1.1.whitelist-chat-id"
+  handoff_notes: "0.1, 0.2, 1.2, 2.1, 2.2, 2.3 y 8.1 done. Corregida inconsistencia: 1.1 ya estaba\
+    \ completamente redactada (status ready-for-dev en su propio archivo) pero este YAML la tenia\
+    \ como backlog. Al ir a implementar 1.1 se detecto que depende de 0.3 (Postgres/Redis dedicados\
+    \ al bot), que no existia -- Firefly usa MariaDB, no hay Postgres en la VPS. Usuario eligio\
+    \ resolver 0.3 primero. 0.3 in-progress: servicios agregados a infra/docker-compose.yml\
+    \ (bot-postgres, bot-redis, publicados solo en 127.0.0.1 porque el Bot Service corre en pm2\
+    \ fuera de Docker), validado con 'docker compose config' (sin levantar el stack, regla del\
+    \ proyecto); pendiente desplegar en la VPS y correr la verificacion de conectividad antes de\
+    \ cerrar a done. Una vez cerrada 0.3, seguir con 1.1 (ya lista, sin bloqueos)."

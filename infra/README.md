@@ -15,9 +15,21 @@ Dos servicios:
 - **`firefly-iii-db`** — MariaDB 11, con volumen nombrado `firefly_iii_db`
   para persistencia real de los datos.
 
-Redis y el Postgres propio del Bot Service se agregan en la **0.3** — son
-servicios e instancias de base de datos **distintas** de esta; no comparten
-contenedor con Firefly.
+Redis y el Postgres propio del Bot Service (historia 0.3) — instancias
+**distintas** de la de Firefly, sin compartir contenedor ni volumen:
+
+- **`bot-postgres`** — Postgres 16, volumen nombrado `bot_postgres_data`.
+  Guardará `usuarios_autorizados` (Épica 1, PAT cifrado) y `log_auditoria_ia`
+  (Épica 8) — ninguna tabla se crea todavía en esta historia, solo el
+  contenedor y la conectividad.
+- **`bot-redis`** — Redis 7, volumen nombrado `bot_redis_data`. Sin uso
+  todavía: servirá para el historial de conversación con TTL corto (Épica 5)
+  y la cola BullMQ (Épica 6).
+
+Ambos publicados **solo en `127.0.0.1`** (nunca `0.0.0.0`) porque el Bot
+Service es un proceso `pm2` en el host (historias 2.1+), no un contenedor de
+este compose — necesita alcanzarlos por `localhost`, igual que el patrón ya
+usado para Firefly en el paso 5 de la sección de reverse proxy más abajo.
 
 **Nota sobre el reverse proxy (historia 0.2):** esta VPS ya aloja ~10
 proyectos previos y los puertos 80/443 pertenecen a un **nginx instalado
@@ -153,9 +165,48 @@ de este repo todavía** — recién en el paso 5 se aplica el cambio a
    sudo certbot renew --dry-run
    ```
 
+## Postgres y Redis del Bot Service (historia 0.3)
+
+Requiere completar en `.env`: `BOT_DB_DATABASE`, `BOT_DB_USERNAME`,
+`BOT_DB_PASSWORD`, `BOT_DB_PORT` (default `5433`), `BOT_REDIS_PORT` (default
+`6380`) — puertos no estándar a propósito, para no chocar con otro
+Postgres/Redis que ya pueda existir en esta VPS (~10 proyectos previos).
+
+```bash
+docker compose up -d bot-postgres bot-redis
+```
+
+Validar conectividad (AC #1, #2) desde el propio host, ya que el Bot Service
+también corre ahí:
+
+```bash
+# Requiere psql/redis-cli instalados en el host, o usar un contenedor auxiliar:
+docker run --rm --network firefly-iii-net postgres:16-alpine \
+  psql "postgresql://<BOT_DB_USERNAME>:<BOT_DB_PASSWORD>@bot-postgres:5432/<BOT_DB_DATABASE>" -c "select 1;"
+
+docker run --rm --network firefly-iii-net redis:7-alpine \
+  redis-cli -h bot-redis ping
+```
+
+Confirmar que **no** son alcanzables desde fuera del servidor (AC #5) —
+`telnet <IP-pública> 5433` (o el puerto elegido) debe fallar/colgarse, a
+diferencia de un `telnet 127.0.0.1 5433` corrido dentro de la VPS.
+
+Persistencia (AC #4): `docker compose down && docker compose up -d` y
+confirmar que un dato de prueba insertado antes sigue en `bot-postgres` — el
+volumen `bot_postgres_data` es independiente del contenedor.
+
+Completar también en `bot-service/.env` (no en este `.env` de `infra/`):
+`DATABASE_URL` y `REDIS_URL` apuntando a `127.0.0.1:<mismo puerto>` con las
+mismas credenciales — es un proceso separado (pm2, fuera de Docker) que lee
+su propia configuración. Ver `bot-service/.env.example`.
+
+Esta historia **no** crea ninguna tabla ni usa Redis todavía — solo deja la
+infraestructura y la conectividad listas. El esquema de `usuarios_autorizados`
+es la historia 1.1.
+
 ## Fuera de alcance de estas historias
 
-- Redis / Postgres del Bot Service → historia 0.3.
 - Backups automáticos → historia 0.4.
 - Cron de Firefly III (transacciones recurrentes) y el Data Importer no se
   incluyen todavía — se evalúan si el proyecto los necesita más adelante.

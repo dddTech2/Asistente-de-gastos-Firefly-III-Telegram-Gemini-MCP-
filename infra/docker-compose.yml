@@ -1,10 +1,13 @@
 # Firefly III — stack base (historia 0.1) + reverse proxy HTTPS (historia 0.2)
+# + Postgres/Redis dedicados al Bot Service (historia 0.3)
 #
-# Servicios: la app de Firefly III y su base de datos (MariaDB). El reverse
-# proxy con HTTPS de la historia 0.2 NO vive acá: los puertos 80/443 de esta
-# VPS ya los tiene el nginx del sistema operativo (usado por los demás
-# proyectos del host). Firefly se expone agregando un server block más a ese
-# nginx existente -- ver infra/README.md.
+# Servicios: la app de Firefly III y su base de datos (MariaDB); Postgres y
+# Redis del Bot Service (base de datos y propósito completamente distintos —
+# usuarios/PAT/auditoría, no datos financieros). El reverse proxy con HTTPS de
+# la historia 0.2 NO vive acá: los puertos 80/443 de esta VPS ya los tiene el
+# nginx del sistema operativo (usado por los demás proyectos del host).
+# Firefly se expone agregando un server block más a ese nginx existente -- ver
+# infra/README.md.
 #
 # Uso:
 #   cp .env.example .env   # completar valores reales, nunca commitear .env
@@ -69,11 +72,59 @@ services:
     networks:
       - firefly-iii-net
 
+  bot-postgres:
+    image: postgres:16-alpine
+    container_name: bot-postgres
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${BOT_DB_DATABASE}
+      POSTGRES_USER: ${BOT_DB_USERNAME}
+      POSTGRES_PASSWORD: ${BOT_DB_PASSWORD}
+    volumes:
+      - bot_postgres_data:/var/lib/postgresql/data
+    # El Bot Service NO corre en este compose (es un proceso pm2 directo en el
+    # host, historias 2.1+) -- necesita alcanzar este Postgres desde fuera de
+    # Docker. Igual que Firefly en 0.1, se publica solo en 127.0.0.1: nunca en
+    # 0.0.0.0 (AC #5 -- "no expuesto públicamente" no es lo mismo que "no
+    # publicado", ver Dev Agent Record para el detalle de esta decisión).
+    ports:
+      - "127.0.0.1:${BOT_DB_PORT:-5433}:5432"
+    networks:
+      - firefly-iii-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${BOT_DB_USERNAME} -d ${BOT_DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  bot-redis:
+    image: redis:7-alpine
+    container_name: bot-redis
+    restart: unless-stopped
+    volumes:
+      - bot_redis_data:/data
+    # Mismo razonamiento que bot-postgres: publicado solo en 127.0.0.1 para
+    # que el Bot Service (proceso host, no contenedor) pueda conectarse.
+    ports:
+      - "127.0.0.1:${BOT_REDIS_PORT:-6380}:6379"
+    networks:
+      - firefly-iii-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
 volumes:
   firefly_iii_db:
     name: firefly_iii_db
   firefly_iii_upload:
     name: firefly_iii_upload
+  bot_postgres_data:
+    name: bot_postgres_data
+  bot_redis_data:
+    name: bot_redis_data
 
 networks:
   firefly-iii-net:
