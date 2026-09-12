@@ -19,6 +19,13 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 8.1 (logs estructurados): implementada, pendiente de despliegue
+- **Decision:** logger central con `pino` en `bot-service/src/lib/logger.ts` (ruta adaptada de la genérica `src/lib/logger.ts` del Owned File/Module Scope, que no contemplaba que el código vive bajo `bot-service/`) + `bot-service/src/config/logging.config.ts` para `LOG_LEVEL`. Reemplaza el logger mínimo de la historia 2.3 (`src/logging/logger.ts`, eliminado). Instrumentado: webhook (recibido/encolado/desencolado/procesado/error) e `index.ts` (`uncaughtException`/`unhandledRejection`). Gemini y MCP quedan explícitamente sin instrumentar porque esos módulos son de Epic 4/5 y todavía no existen en el código.
+- **Rationale:** `pino` por overhead bajo (sugerencia del Dev Notes de la historia); `formatters.level` + `timestamp` custom para que el JSON tenga exactamente los nombres de campo del AC #2 (`timestamp` ISO, `level` como string); `redact.paths` de pino cubre `pat`/`token`/`apiKey`/`authorization` (AC #4) porque los call sites de logging son controlados por este código, no hace falta redacción recursiva genérica.
+- **Verificación:** `npm run build` limpio; `npm test` → 29/29 en verde, cubriendo `resolveLogLevel` (niveles válidos/inválidos), el logger (JSON parseable, filtrado por nivel, redacción, serialización de errores con stack), y el webhook instrumentado (contexto `update_id`/`chat_id` en cada log, error loggeado con stack sin afectar el ack). `npm audit`: pino no suma vulnerabilidades nuevas. Falta desplegar en la VPS y confirmar con `pm2 logs bot-service` que la salida real es JSON estructurado — a diferencia de 2.1/2.2, acá la verificación de producción sí es central al valor de la historia (logs para debugging real).
+- **Made by:** dev agent (implementación de 8.1)
+- **Supersedes:** el logger mínimo introducido en la historia 2.3 (`src/logging/logger.ts`), que su propio Dev Agent Record ya marcaba como no siendo "la solución completa de 8.1".
+
 ### 2026-09-12 — Historia 2.3 (ack asíncrono del webhook) cerrada — Epic 2 completo
 - **Decision:** usuario desplegó en la VPS (`git pull && npm install && npm run build && pm2 restart bot-service`) y confirmó que el bot sigue respondiendo con normalidad, sin regresiones. Verificación independiente adicional: `curl -X POST` al webhook sin `secret_token` tras el restart sigue devolviendo `401`. Con esto se cierra también la Epic 2 (bot de Telegram esqueleto) completa: 2.1, 2.2 y 2.3 done.
 - **Made by:** dev agent (implementación de 2.3)

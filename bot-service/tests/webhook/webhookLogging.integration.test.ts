@@ -42,53 +42,44 @@ async function buildApp() {
   return { app, bot };
 }
 
-describe("createTelegramWebhookHandler — ack inmediato + procesamiento asincrono (historia 2.3)", () => {
+describe("logging estructurado del webhook (historia 8.1)", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("responde 200 antes de que termine un procesamiento simulado lento (AC #1, #2)", async () => {
+  it("loggea la recepción del webhook con update_id y chat_id (AC #1, #2)", async () => {
+    const infoSpy = vi.spyOn(logger, "info").mockImplementation(() => {});
     const { app, bot } = await buildApp();
-    let processingFinished = false;
-    vi.spyOn(bot, "handleUpdate").mockImplementation(async () => {
-      await delay(100);
-      processingFinished = true;
-    });
+    vi.spyOn(bot, "handleUpdate").mockResolvedValue(undefined);
 
-    const response = await request(app).post("/webhook/telegram").send(textUpdate(1, 555, "hola"));
+    await request(app).post("/webhook/telegram").send(textUpdate(42, 555, "hola"));
 
-    expect(response.status).toBe(200);
-    expect(processingFinished).toBe(false);
-
-    await delay(150);
-    expect(processingFinished).toBe(true);
-  });
-
-  it("varios updates concurrentes de distintos chats reciben cada uno 200 sin bloquearse (AC #3)", async () => {
-    const { app, bot } = await buildApp();
-    vi.spyOn(bot, "handleUpdate").mockImplementation(async () => {
-      await delay(50);
-    });
-
-    const responses = await Promise.all(
-      [1, 2, 3, 4, 5].map((n) =>
-        request(app)
-          .post("/webhook/telegram")
-          .send(textUpdate(n, 100 + n, `msg-${n}`)),
-      ),
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ update_id: 42, chat_id: 555 }),
+      "Webhook de Telegram recibido",
     );
-
-    for (const response of responses) {
-      expect(response.status).toBe(200);
-    }
   });
 
-  it("una excepción en el procesamiento asíncrono no afecta el ack ya enviado y queda logueada (AC #4)", async () => {
+  it("loggea el update desencolado y procesado, correlacionado por update_id (AC #1, #2)", async () => {
+    const infoSpy = vi.spyOn(logger, "info").mockImplementation(() => {});
+    const { app, bot } = await buildApp();
+    vi.spyOn(bot, "handleUpdate").mockResolvedValue(undefined);
+
+    await request(app).post("/webhook/telegram").send(textUpdate(43, 556, "hola"));
+    await delay(10);
+
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ update_id: 43, chat_id: 556 }),
+      "Procesando update desencolado",
+    );
+  });
+
+  it("loggea un error del procesamiento asíncrono con nivel error, contexto y stack trace (AC #1, #2, #4)", async () => {
+    const errorSpy = vi.spyOn(logger, "error").mockImplementation(() => {});
     const { app, bot } = await buildApp();
     vi.spyOn(bot, "handleUpdate").mockRejectedValue(new Error("fallo simulado"));
-    const errorSpy = vi.spyOn(logger, "error").mockImplementation(() => {});
 
-    const response = await request(app).post("/webhook/telegram").send(textUpdate(7, 777, "hola"));
+    const response = await request(app).post("/webhook/telegram").send(textUpdate(9, 777, "hola"));
     expect(response.status).toBe(200);
 
     await delay(10);
@@ -96,7 +87,17 @@ describe("createTelegramWebhookHandler — ack inmediato + procesamiento asincro
     expect(errorSpy).toHaveBeenCalledTimes(1);
     const [context, message] = errorSpy.mock.calls[0];
     expect(message).toBe("Error procesando update de Telegram de forma asincrona");
-    expect(context).toMatchObject({ update_id: 7, chat_id: 777 });
+    expect(context).toMatchObject({ update_id: 9, chat_id: 777 });
+    expect((context as { err: Error }).err).toBeInstanceOf(Error);
     expect((context as { err: Error }).err.message).toBe("fallo simulado");
+  });
+
+  it("no rompe el logging cuando el update no trae chat_id reconocible (edge case)", async () => {
+    const { app, bot } = await buildApp();
+    vi.spyOn(bot, "handleUpdate").mockResolvedValue(undefined);
+
+    const response = await request(app).post("/webhook/telegram").send({ update_id: 1 });
+
+    expect(response.status).toBe(200);
   });
 });

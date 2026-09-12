@@ -274,7 +274,7 @@ la arquitectura aguanta 50 usuarios concurrentes antes de invitarlos a todos.
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 8.1 | logs-estructurados | Logs estructurados de todo lo que hace el bot | ready-for-dev |
+| 8.1 | logs-estructurados | Logs estructurados de todo lo que hace el bot | in-progress — logger central con pino (redacción de secretos, LOG_LEVEL), webhook e index.ts instrumentados; pendiente confirmar en la VPS |
 | 8.2 | tabla-auditoria-ia | Auditoría de qué escribió cada usuario y qué tool ejecutó la IA | ready-for-dev |
 | 8.3 | rotacion-secretos | Rotar y proteger todos los secretos fuera del control de versiones | ready-for-dev |
 | 8.4 | alertas-caida-servicio | Alertas si el bot o Firefly III se caen | ready-for-dev |

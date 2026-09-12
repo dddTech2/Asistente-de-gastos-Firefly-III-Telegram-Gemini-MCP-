@@ -171,10 +171,43 @@ registrado como JSON estructurado en el log del proceso (`src/logging/logger.ts`
 un logger mínimo con alcance acotado a este caso; el logging estructurado
 completo del servicio es la historia 8.1).
 
+## Logs estructurados (historia 8.1)
+
+El Bot Service loggea en JSON (un objeto por línea) a `stdout`/`stderr` vía
+[pino](https://getpino.io/) — sin `console.log` de texto libre y sin escribir
+a ningún archivo propio, para que `pm2`/Docker lo capturen con su driver de
+logging estándar. Ver `src/lib/logger.ts` y `src/config/logging.config.ts`.
+
+Cada línea incluye `timestamp` (ISO 8601), `level`, `msg`, y — cuando aplica —
+`chat_id`/`update_id` para poder correlacionar reintentos de Telegram con lo
+que el bot realmente procesó. Nunca aparecen en texto plano: el PAT de
+Firefly III, la API key de Gemini, el token del bot ni cualquier otro secreto
+— se redactan como `"[REDACTED]"` (campos `pat`, `token`, `apiKey`,
+`authorization`).
+
+El nivel se controla con `LOG_LEVEL` en `.env` (`debug | info | warn | error`,
+default `info`) — cambiar el nivel solo requiere editar `.env` y reiniciar el
+proceso, sin rebuild:
+
+```bash
+pm2 restart bot-service
+pm2 logs bot-service
+```
+
+Instrumentado hoy: webhook de Telegram (recibido, encolado, desencolado,
+procesado, error) y excepciones/rechazos no controlados a nivel de proceso
+(`src/index.ts`). Los clientes de Gemini y del MCP (Epic 4/5) todavía no
+existen en el código — cuando se construyan deben loggear con el mismo
+`logger` central, no reintroducir `console.log`.
+
 ## Fuera de alcance de esta historia
 
 - Deduplicar updates repetidos por `update_id` → historia 6.1.
 - Reintentos con backoff ante fallos de Gemini/Firefly → historia 6.4.
 - Reemplazar la cola en memoria por una persistente (BullMQ + Redis) → historia 6.2.
+- Un agregador de logs centralizado (ELK/Loki/Grafana) → sobre-ingeniería para
+  este tamaño; alcanza con `pm2 logs` / el driver de logging de Docker.
+- Auditoría de negocio (qué escribió cada usuario, qué tool ejecutó la IA) →
+  historia 8.2, tabla en base de datos, no logs de proceso.
 - Dockerizar el Bot Service / sumarlo a `infra/docker-compose.yml` → se evalúa
   junto con Redis/Postgres en la historia 0.3, no acá.

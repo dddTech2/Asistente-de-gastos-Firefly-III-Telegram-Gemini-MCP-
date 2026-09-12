@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-12T07:00:00Z"
+last_updated: "2026-09-12T08:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -463,7 +463,7 @@ stories:
 - id: "8.1.logs-estructurados"
   title: "Logs estructurados de todo lo que hace el bot"
   epic_id: "epic-8"
-  status: backlog
+  status: in-progress
   file: "bmad-output/stories/8.1.logs-estructurados.story.md"
   parallel_set: 4
   dependencies:
@@ -563,12 +563,12 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 1
-    story_ids:
-    - "8.1.logs-estructurados"
-  handoff_notes: "0.1, 0.2, 1.2, 2.1, 2.2 y 2.3 done. Epic 2 (bot de Telegram esqueleto) completo:\
-    \ webhook con secret_token, eco de confirmacion, y ack HTTP desacoplado del procesamiento via\
-    \ InMemoryProcessingQueue. 2.3 verificada en produccion (bot responde normal tras el deploy,\
-    \ secret_token sigue devolviendo 401). 8.1 (logs-estructurados) sigue ready-for-dev, unico item\
-    \ desbloqueado. 1.3 aun bloqueada por 1.1 (backlog, no iniciada). Epic 3 y 5 quedan desbloqueadas\
-    \ a nivel de epica por el cierre de 2.3."
+    count: 0
+    story_ids: []
+  handoff_notes: "0.1, 0.2, 1.2, 2.1, 2.2 y 2.3 done (Epic 2 completo). 8.1 (logs-estructurados)\
+    \ in-progress: logger central con pino (src/lib/logger.ts + src/config/logging.config.ts),\
+    \ redaccion de secretos, LOG_LEVEL configurable, webhook e index.ts instrumentados; Gemini/MCP\
+    \ quedan sin instrumentar porque esos modulos aun no existen (Epic 4/5). 29/29 tests locales en\
+    \ verde, build limpio; pendiente desplegar en la VPS y confirmar con pm2 logs que la salida es\
+    \ JSON real antes de cerrar a done. Ready_for_dev vacio: no hay otro item desbloqueado ahora\
+    \ mismo (1.3 sigue bloqueada por 1.1, backlog)."
