@@ -19,6 +19,11 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 2.3 (ack asíncrono del webhook) cerrada — Epic 2 completo
+- **Decision:** usuario desplegó en la VPS (`git pull && npm install && npm run build && pm2 restart bot-service`) y confirmó que el bot sigue respondiendo con normalidad, sin regresiones. Verificación independiente adicional: `curl -X POST` al webhook sin `secret_token` tras el restart sigue devolviendo `401`. Con esto se cierra también la Epic 2 (bot de Telegram esqueleto) completa: 2.1, 2.2 y 2.3 done.
+- **Made by:** dev agent (implementación de 2.3)
+- **Supersedes:** la entrada anterior de 2.3 (código completo, despliegue pendiente) — ahora `done`.
+
 ### 2026-09-12 — Historia 2.3 (ack asíncrono del webhook): implementada, pendiente de despliegue
 - **Decision:** el handler `createTelegramWebhookHandler` ahora responde `200 OK` inmediatamente después de `verifySecretToken` (2.1), y encola el `Update` crudo en una `InMemoryProcessingQueue<Update>` (nueva, `bot-service/src/queue/inMemoryProcessingQueue.ts`) cuyo processor es el mismo `bot.handleUpdate(update)` de antes — el eco de 2.2 y cualquier handler futuro no cambian su lógica, solo cuándo se disparan. Un `onError` de la cola loggea `update_id` + mensaje vía un logger JSON mínimo nuevo (`bot-service/src/logging/logger.ts`) sin tocar la respuesta HTTP ya enviada.
 - **Rationale:** se eligió una cola in-process FIFO con un solo consumidor secuencial (en vez de `setImmediate` suelto por update) para tener orden explícito y evitar drenados concurrentes, sin introducir Redis/BullMQ (AC #5 — eso es explícitamente de la historia 6.2). El logger es deliberadamente mínimo: cubre solo el requisito de diagnóstico de esta historia (AC #4), no anticipa el logging estructurado completo de 8.1.
