@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-12T08:00:00Z"
+last_updated: "2026-09-12T09:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -85,7 +85,7 @@ epics:
 - id: "epic-8"
   title: "Observabilidad y hardening"
   description: ""
-  status: backlog
+  status: in-progress
   story_ids:
   - "8.1.logs-estructurados"
   - "8.2.tabla-auditoria-ia"
@@ -463,7 +463,7 @@ stories:
 - id: "8.1.logs-estructurados"
   title: "Logs estructurados de todo lo que hace el bot"
   epic_id: "epic-8"
-  status: in-progress
+  status: done
   file: "bmad-output/stories/8.1.logs-estructurados.story.md"
   parallel_set: 4
   dependencies:
@@ -565,10 +565,9 @@ sequencing_summary:
   ready_for_dev:
     count: 0
     story_ids: []
-  handoff_notes: "0.1, 0.2, 1.2, 2.1, 2.2 y 2.3 done (Epic 2 completo). 8.1 (logs-estructurados)\
-    \ in-progress: logger central con pino (src/lib/logger.ts + src/config/logging.config.ts),\
-    \ redaccion de secretos, LOG_LEVEL configurable, webhook e index.ts instrumentados; Gemini/MCP\
-    \ quedan sin instrumentar porque esos modulos aun no existen (Epic 4/5). 29/29 tests locales en\
-    \ verde, build limpio; pendiente desplegar en la VPS y confirmar con pm2 logs que la salida es\
-    \ JSON real antes de cerrar a done. Ready_for_dev vacio: no hay otro item desbloqueado ahora\
-    \ mismo (1.3 sigue bloqueada por 1.1, backlog)."
+  handoff_notes: "0.1, 0.2, 1.2, 2.1, 2.2, 2.3 y 8.1 done. 8.1 (logs-estructurados) verificada en\
+    \ produccion: pm2 logs bot-service confirma salida JSON real con update_id/chat_id. Gemini/MCP\
+    \ quedan sin instrumentar porque esos modulos aun no existen (Epic 4/5); cuando se construyan\
+    \ deben usar src/lib/logger.ts. Ready_for_dev vacio: no hay ningun item compilado y desbloqueado\
+    \ ahora mismo. Proximo trabajo razonable: compilar 1.1.whitelist-chat-id (hoy en backlog, sin\
+    \ elaborar) para desbloquear 1.3 y avanzar Epic 1."

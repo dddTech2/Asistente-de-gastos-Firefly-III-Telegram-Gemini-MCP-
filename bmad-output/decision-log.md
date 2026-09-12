@@ -19,6 +19,11 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 8.1 (logs estructurados) cerrada — verificada en producción
+- **Decision:** usuario desplegó en la VPS (`git pull && npm install && npm run build && pm2 restart bot-service`) y confirmó vía `pm2 logs bot-service` que la salida es JSON estructurado real, con `update_id`/`chat_id` correlacionables — cierra el AC #5 (stdout/stderr, sin infraestructura adicional) de forma concreta, no solo por tests locales.
+- **Made by:** dev agent (implementación de 8.1)
+- **Supersedes:** la entrada anterior de 8.1 (código completo, despliegue pendiente) — ahora `done`.
+
 ### 2026-09-12 — Historia 8.1 (logs estructurados): implementada, pendiente de despliegue
 - **Decision:** logger central con `pino` en `bot-service/src/lib/logger.ts` (ruta adaptada de la genérica `src/lib/logger.ts` del Owned File/Module Scope, que no contemplaba que el código vive bajo `bot-service/`) + `bot-service/src/config/logging.config.ts` para `LOG_LEVEL`. Reemplaza el logger mínimo de la historia 2.3 (`src/logging/logger.ts`, eliminado). Instrumentado: webhook (recibido/encolado/desencolado/procesado/error) e `index.ts` (`uncaughtException`/`unhandledRejection`). Gemini y MCP quedan explícitamente sin instrumentar porque esos módulos son de Epic 4/5 y todavía no existen en el código.
 - **Rationale:** `pino` por overhead bajo (sugerencia del Dev Notes de la historia); `formatters.level` + `timestamp` custom para que el JSON tenga exactamente los nombres de campo del AC #2 (`timestamp` ISO, `level` como string); `redact.paths` de pino cubre `pat`/`token`/`apiKey`/`authorization` (AC #4) porque los call sites de logging son controlados por este código, no hace falta redacción recursiva genérica.
