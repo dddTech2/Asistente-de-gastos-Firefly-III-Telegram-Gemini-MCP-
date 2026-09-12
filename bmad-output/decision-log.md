@@ -19,6 +19,38 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 1.3 (alta de usuario Firefly III): implementada, pendiente de despliegue
+- **Decision:** implementada la variante **semi-manual** confirmada por el spike 1.2 (Firefly III
+  no puede generar un PAT en nombre de otro usuario vía API admin). `firefly-admin-client.ts`
+  envuelve `POST /api/v1/users` sin enviar `role` (el usuario nuevo no hereda privilegios owner).
+  `alta-usuario.ts` orquesta: crea la cuenta en Firefly → solo si tuvo éxito registra el `chat_id`
+  en `usuarios_autorizados` con `activo=true` (reutilizando el repositorio de 1.1, al que se le
+  agregó el método `crear()`) → devuelve instrucciones para que el usuario genere su propio PAT
+  en `/profile`. El PAT que el admin recibe después se entrega a un `PatSink` inyectado
+  (`entregarPatUsuario`) que nunca lo persiste ni lo loggea — hasta que exista 1.4 (cifrado +
+  persistencia), el sink real es un placeholder que solo avisa y descarta el valor en memoria.
+- **Desviación de scope:** se agregó `bot-service/scripts/alta-usuario.ts` (CLI de dos
+  subcomandos), no listado en el Owned File/Module Scope original de la historia — sin un punto
+  de entrada ejecutable, el AC #1 ("cuando el administrador ejecuta el flujo de alta") no tenía
+  forma de correr. Mismo criterio que `scripts/migrate.ts` en la historia 1.1.
+- **Decisión de diseño:** alta con `chat_id` duplicado **falla explícitamente** (no es
+  idempotente) — un duplicado casi siempre es un error del administrador, y fallar rápido evita
+  crear una segunda cuenta Firefly innecesaria.
+- **Riesgo aceptado, no mitigado:** si Firefly tiene éxito pero el registro en la whitelist falla
+  justo después (ej. Postgres caído en ese instante), queda una cuenta huérfana en Firefly sin
+  `chat_id` asociado. A la escala de esta historia (alta manual, ~10-50 usuarios) se repara a
+  mano vía el log de auditoría — no se construyó un rollback/saga automático.
+- **No se construyó integración en vivo contra Firefly III real:** la única instancia es la de
+  producción (`firefly.nyoholding.com`); crear un test automatizado que dé de alta usuarios
+  reales contra ella en cada corrida de CI es un riesgo mayor que su valor a esta escala. Se
+  cubre con tests unitarios exhaustivos (cliente HTTP con `fetch` mockeado + orquestador con
+  dependencias mockeadas) — la verificación real queda para cuando el administrador corra el
+  script contra la VPS.
+- **Verificación local:** `npm test` → 51 passed, 2 skipped (los 2 skipped son la suite de
+  integración Postgres de 1.1, sin relación); `npx tsc --noEmit` sin errores.
+- **Made by:** dev agent (implementación de 1.3)
+- **Supersedes:** none
+
 ### 2026-09-12 — Historia 1.1 (whitelist de chat_id) cerrada — verificada en producción
 - **Decision:** usuario desplegó (migración aplicada, `chat_id` propio dado de alta, `pm2 restart`) y confirmó ambos casos en vivo: un `chat_id` no dado de alta recibe "No autorizado..."; el `chat_id` propio sigue recibiendo el eco normal (probado con "hla").
 - **Nota operativa:** la VPS no tiene `psql` instalado en el host — hubo que correrlo vía `docker exec -it bot-postgres bash -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "..."'`. Documentado en `bot-service/README.md` para la próxima vez que haga falta un `INSERT`/consulta manual contra ese Postgres.

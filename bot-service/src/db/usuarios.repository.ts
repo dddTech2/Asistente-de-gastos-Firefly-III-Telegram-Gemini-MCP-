@@ -32,6 +32,18 @@ export function createUsuariosRepository(db: QueryableDb) {
       }
       return { chatId: Number(row.chat_id), activo: row.activo };
     },
+
+    /**
+     * Registra un chat_id nuevo en la whitelist (historia 1.3, alta de
+     * usuario). Falla si el chat_id ya existe -- el llamador (el orquestador
+     * de alta) decide qué hacer con eso, no se hace upsert silencioso acá.
+     */
+    async crear(usuario: UsuarioAutorizado): Promise<void> {
+      await db.query("INSERT INTO usuarios_autorizados (chat_id, activo) VALUES ($1, $2)", [
+        usuario.chatId,
+        usuario.activo,
+      ]);
+    },
   };
 }
 

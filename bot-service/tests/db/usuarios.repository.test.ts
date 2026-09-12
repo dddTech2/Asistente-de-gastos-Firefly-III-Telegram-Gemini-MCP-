@@ -38,3 +38,17 @@ describe("createUsuariosRepository.findByChatId", () => {
     expect(db.query).toHaveBeenCalledWith(expect.stringContaining("WHERE chat_id = $1"), [789]);
   });
 });
+
+describe("createUsuariosRepository.crear", () => {
+  it("inserta el chat_id con los valores dados, parametrizados (historia 1.3)", async () => {
+    const db = buildDb([]);
+    const repo = createUsuariosRepository(db);
+
+    await repo.crear({ chatId: 999, activo: true });
+
+    expect(db.query).toHaveBeenCalledWith(expect.stringContaining("INSERT INTO usuarios_autorizados"), [
+      999,
+      true,
+    ]);
+  });
+});

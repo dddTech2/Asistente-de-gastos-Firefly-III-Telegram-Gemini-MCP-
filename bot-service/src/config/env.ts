@@ -18,4 +18,9 @@ export const env = {
   // barrera de aislamiento entre usuarios — el proceso no debe arrancar sin
   // poder consultarla.
   databaseUrl: required("DATABASE_URL"),
+  // Solo los usa `scripts/alta-usuario.ts` (historia 1.3) — deliberadamente
+  // NO son `required()` acá: el proceso principal del bot (webhook) no debe
+  // dejar de arrancar por faltar un secreto que ni siquiera usa.
+  fireflyAdminBaseUrl: process.env.FIREFLY_ADMIN_BASE_URL || "",
+  fireflyAdminToken: process.env.FIREFLY_ADMIN_TOKEN || "",
 };

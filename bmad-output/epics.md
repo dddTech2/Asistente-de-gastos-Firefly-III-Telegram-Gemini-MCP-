@@ -68,7 +68,7 @@ lógica custom.
 |------|------|--------|--------|
 | 1.1 | whitelist-chat-id | El bot solo responde a `chat_id` registrados | done — verificado en producción (no autorizado bloqueado, eco sigue funcionando para el chat_id dado de alta) |
 | 1.2 | spike-provisionamiento-pat | Spike: confirmar si el PAT se genera vía API admin o requiere login manual | done — confirmado por código fuente: solo login manual, variante semi-manual para 1.3 |
-| 1.3 | alta-usuario-firefly | Flujo controlado de alta de cuentas Firefly III | ready-for-dev — 1.1 y 1.2 ya cerradas, sin bloqueos |
+| 1.3 | alta-usuario-firefly | Flujo controlado de alta de cuentas Firefly III | in-progress — variante semi-manual implementada (spike 1.2), pendiente de verificación en producción |
 | 1.4 | pat-cifrado-postgres | Guardar el PAT de cada usuario cifrado en Postgres vinculado a `chat_id` | ready-for-dev |
 | 1.5 | pat-por-request-mcp | Cada llamada al MCP usa el PAT del usuario que escribió el mensaje | ready-for-dev |
 

@@ -224,9 +224,9 @@ Lee todos los `.sql` de `src/db/migrations/` en orden y los aplica contra
 `DATABASE_URL`. Es seguro correrlo más de una vez (cada archivo usa
 `CREATE TABLE IF NOT EXISTS`).
 
-**Dar de alta el primer chat_id** (el tuyo) — no existe todavía un flujo de
-alta real (eso es la historia 1.3, bloqueada por el spike 1.2), así que por
-ahora es un `INSERT` manual. Tu `chat_id` lo podés ver hablándole a
+**Dar de alta el primer chat_id** (el tuyo) — usá el `INSERT` manual de abajo
+para tu propio `chat_id` (o el flujo real de la historia 1.3 si ya está
+desplegado, ver más abajo). Tu `chat_id` lo podés ver hablándole a
 [@userinfobot](https://t.me/userinfobot) en Telegram:
 
 Si tenés `psql` instalado en el host:
@@ -260,9 +260,51 @@ docker exec -it bot-postgres bash -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
 ella (`src/config/env.ts`), consistente con que la whitelist es la primera
 barrera de seguridad, no algo opcional.
 
+## Alta de usuarios nuevos (historia 1.3)
+
+Flujo controlado para dar de alta un usuario nuevo del bot, vía CLI que corre
+el propio administrador (no hay comando de Telegram para esto — evita que un
+usuario no autorizado pueda darse de alta a sí mismo). Variante **semi-manual**,
+confirmada por el spike 1.2: Firefly III no tiene forma de generar el PAT de
+otro usuario vía API admin, así que el usuario debe generarlo él mismo.
+
+Requiere en `.env` (solo para este script, el proceso del bot no los usa):
+
+```
+FIREFLY_ADMIN_BASE_URL=https://firefly.nyoholding.com
+FIREFLY_ADMIN_TOKEN=<PAT owner, nunca commitear>
+```
+
+**Paso 1 — crear la cuenta y habilitar el chat_id:**
+
+```bash
+npm run alta-usuario -- crear --nombre "Nombre Apellido" --email usuario@ejemplo.com --chat-id <chat_id> --admin <tu_usuario>
+```
+
+Crea la cuenta en Firefly III (`POST /api/v1/users`, sin rol `owner`) y, solo
+si eso tuvo éxito, registra el `chat_id` en `usuarios_autorizados` con
+`activo = true` — el usuario queda habilitado por la whitelist de 1.1 de
+inmediato, antes incluso de tener su PAT. El comando imprime las instrucciones
+a transmitirle al usuario (entrar a `/profile` → OAuth → Personal Access
+Tokens y generarse uno).
+
+**Paso 2 — una vez que el usuario entrega su PAT:**
+
+```bash
+npm run alta-usuario -- completar-pat --chat-id <chat_id> --pat <PAT_del_usuario> --admin <tu_usuario>
+```
+
+⚠️ La historia 1.4 (cifrado + persistencia del PAT en Postgres) todavía no
+existe: este paso hoy solo recibe el PAT en memoria y lo descarta con una
+advertencia — no lo escribe a disco, log ni ninguna tabla. Una vez que 1.4 esté
+lista, este mismo comando quedará conectado a la capa de cifrado real sin
+cambiar su interfaz.
+
+Si el `chat_id` ya está registrado, el comando falla explícitamente (no es
+idempotente) — evita crear una segunda cuenta Firefly por error.
+
 ## Fuera de alcance de esta historia
 
-- El flujo de alta real de usuarios (`/start`, comando, etc.) → historia 1.3.
 - PAT cifrado por usuario → historia 1.4.
 - Deduplicar updates repetidos por `update_id` → historia 6.1.
 - Reintentos con backoff ante fallos de Gemini/Firefly → historia 6.4.

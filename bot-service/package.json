@@ -10,7 +10,8 @@
     "start": "node dist/index.js",
     "test": "vitest run",
     "set-webhook": "tsx scripts/set-webhook.ts",
-    "migrate": "tsx scripts/migrate.ts"
+    "migrate": "tsx scripts/migrate.ts",
+    "alta-usuario": "tsx scripts/alta-usuario.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
