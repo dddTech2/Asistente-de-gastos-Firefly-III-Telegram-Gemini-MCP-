@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-12T00:09:32Z"
+last_updated: "2026-09-12T00:48:55Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -26,7 +26,7 @@ epics:
 - id: "epic-1"
   title: "Autenticación y multi-tenancy"
   description: ""
-  status: backlog
+  status: in-progress
   story_ids:
   - "1.1.whitelist-chat-id"
   - "1.2.spike-provisionamiento-pat"
@@ -36,7 +36,7 @@ epics:
 - id: "epic-2"
   title: "Bot de Telegram (esqueleto)"
   description: ""
-  status: backlog
+  status: in-progress
   story_ids:
   - "2.1.bot-botfather-webhook"
   - "2.2.bot-echo-response"
@@ -109,7 +109,7 @@ stories:
 - id: "0.2.reverse-proxy-https"
   title: "Reverse proxy con HTTPS automático"
   epic_id: "epic-0"
-  status: backlog
+  status: done
   file: "bmad-output/stories/0.2.reverse-proxy-https.story.md"
   parallel_set: 2
   dependencies:
@@ -218,7 +218,7 @@ stories:
 - id: "2.1.bot-botfather-webhook"
   title: "Crear bot en BotFather y configurar el webhook"
   epic_id: "epic-2"
-  status: backlog
+  status: ready-for-dev
   file: "bmad-output/stories/2.1.bot-botfather-webhook.story.md"
   parallel_set: 3
   dependencies:
@@ -563,10 +563,9 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 1
+    count: 2
     story_ids:
     - "1.2.spike-provisionamiento-pat"
-  handoff_notes: "0.1 done (desplegado y validado en VPS). 1.2 (spike PAT) desbloqueada. 0.2 (reverse-proxy-https)\
-    \ en revision: el VPS ya aloja ~10 proyectos previos compartiendo el mismo host (puertos 80/443 ya\
-    \ ocupados por otro nginx) -- pendiente de diagnostico antes de desplegar el reverse proxy y marcarla\
-    \ ready-for-dev."
+    - "2.1.bot-botfather-webhook"
+  handoff_notes: "0.1 y 0.2 done (Firefly III + HTTPS via nginx del host, desplegados y validados en VPS).\
+    \ 1.2 (spike PAT) y 2.1 (bot BotFather/webhook) desbloqueadas a ready-for-dev."
