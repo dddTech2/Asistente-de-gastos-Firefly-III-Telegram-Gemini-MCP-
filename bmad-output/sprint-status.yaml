@@ -218,7 +218,7 @@ stories:
 - id: "2.1.bot-botfather-webhook"
   title: "Crear bot en BotFather y configurar el webhook"
   epic_id: "epic-2"
-  status: ready-for-dev
+  status: in-progress
   file: "bmad-output/stories/2.1.bot-botfather-webhook.story.md"
   parallel_set: 3
   dependencies:
@@ -563,9 +563,10 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 1
-    story_ids:
-    - "2.1.bot-botfather-webhook"
-  handoff_notes: "0.1, 0.2 y 1.2 done (Firefly III + HTTPS via nginx del host desplegados y validados en VPS;\
-    \ spike de PAT resuelto por evidencia de codigo fuente, variante semi-manual confirmada para 1.3). 2.1\
-    \ (bot BotFather/webhook) sigue ready-for-dev; 1.3 aun bloqueada por 1.1 (backlog)."
+    count: 0
+    story_ids: []
+  handoff_notes: "0.1, 0.2 y 1.2 done. 2.1 (bot BotFather/webhook) en in-progress: codigo del Bot Service\
+    \ completo y probado localmente (build + tests en verde, bug de bot.init() encontrado y corregido);\
+    \ falta el despliegue real en la VPS (crear bot en BotFather, subdominio + nginx + certbot, correr\
+    \ set-webhook) para cerrar los AC que dependen de la API viva de Telegram. 1.3 aun bloqueada por 1.1\
+    \ (backlog)."
