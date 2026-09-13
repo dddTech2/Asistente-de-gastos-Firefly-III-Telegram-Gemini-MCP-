@@ -53,9 +53,11 @@ tras el error con el primer candidato):
 
 ## Transporte
 
-HTTP (`--transport http`). Puerto interno del contenedor: `3000` (por eso
-`--host 0.0.0.0` en el `command` — el default del binario es `127.0.0.1`,
-que no sería alcanzable desde fuera del contenedor).
+HTTP. El `CMD` por defecto de la imagen ya es
+`node dist/index.js --transport http --host 0.0.0.0` (puerto 3000 por
+defecto) — no hace falta pasar `command:` propio en el compose; hacerlo
+reemplaza el `CMD` entero en vez de extenderlo y rompe el arranque
+(`node: bad option: --transport`, visto en el primer intento de despliegue).
 
 ## Despliegue
 

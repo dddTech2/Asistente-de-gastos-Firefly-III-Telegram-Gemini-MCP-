@@ -128,7 +128,11 @@ services:
     image: ghcr.io/daften/fireflyiii-mcp:0.4.6
     container_name: mcp-firefly
     restart: unless-stopped
-    command: ["--transport", "http", "--host", "0.0.0.0", "--port", "3000"]
+    # Sin `command:` propio: el CMD por defecto de la imagen ya es
+    # ["node", "dist/index.js", "--transport", "http", "--host", "0.0.0.0"]
+    # (puerto 3000 por defecto) -- sobreescribirlo con solo los flags (sin
+    # "node dist/index.js" delante) rompe el arranque, porque `command:`
+    # reemplaza el CMD entero, no lo extiende.
     environment:
       # URL interna del contenedor de Firefly III en esta misma red Docker --
       # evita depender del dominio público/TLS para una llamada contenedor a
