@@ -335,6 +335,34 @@ devuelve el PAT en texto plano únicamente en memoria, para uso inmediato de la
 capa que lo necesite (historia 1.5). Ningún log de la aplicación incluye el PAT
 ni el valor cifrado.
 
+## Credenciales por-request para el MCP (historia 1.5)
+
+Cada llamada al MCP de Firefly III debe usar el PAT del usuario que escribió
+el mensaje — nunca un token compartido ni cacheado entre usuarios. Ese
+aislamiento es el requisito de seguridad más crítico del proyecto: una sola
+instancia de Firefly III sirve a los ~50 usuarios, y la barrera entre ellos
+la pone Firefly III mismo al recibir el PAT correcto en cada request, no
+lógica custom de este repo.
+
+`src/auth/credential-resolver.ts` expone `createCredentialResolver({
+usuariosRepository, fireflyUrl })`, cuyo `getUserCredentials(chatId)`:
+
+- resuelve y descifra el PAT del `chat_id` (vía `obtenerPatDescifrado` de
+  1.4) en cada llamada, sin cachear ni reutilizar nada entre invocaciones;
+- devuelve `{ pat, fireflyUrl }`, listo para el header
+  `Authorization: Bearer <pat>` contra la instancia de Firefly III;
+- si no hay PAT válido (usuario no aprovisionado, PAT corrupto, o cualquier
+  fallo al resolverlo) lanza `CredencialesNoDisponiblesError` **antes** de
+  que el llamador pueda invocar ninguna tool del MCP — nunca hace fallback a
+  un PAT de otro usuario o compartido.
+
+Este es el único punto de resolución de credenciales que debe usarse en todo
+el pipeline. El servidor MCP real todavía no está desplegado (Epic 4) ni
+existe la integración con Gemini (Epic 5): esta historia construye y prueba
+el mecanismo de forma aislada, con el cliente MCP mockeado en los tests —
+Epic 4/5 deben llamar a `getUserCredentials` antes de cualquier invocación de
+tool, en vez de reimplementar resolución de credenciales en otro lugar.
+
 ## Fuera de alcance de esta historia
 
 - Deduplicar updates repetidos por `update_id` → historia 6.1.

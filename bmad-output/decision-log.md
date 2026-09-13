@@ -19,6 +19,34 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-13 — Historia 1.5 (PAT por-request en el MCP) cerrada — Epic 1 completo
+- **Decision:** implementado `bot-service/src/auth/credential-resolver.ts`:
+  `createCredentialResolver({ usuariosRepository, fireflyUrl })` retorna `getUserCredentials(chatId)`,
+  que resuelve/descifra el PAT (vía 1.4) en cada invocación, sin cachear nada entre llamadas (AC #3),
+  y devuelve `{ pat, fireflyUrl }` listo para `Authorization: Bearer <pat>` (AC #2). Cualquier fallo
+  al resolver (sin PAT, PAT corrupto, o error de infraestructura) se loggea (`chat_id` + `err`, nunca
+  el PAT) y colapsa uniformemente a `CredencialesNoDisponiblesError` **antes** de que el llamador
+  pueda invocar una tool del MCP — nunca hace fallback a un PAT compartido o de otro usuario (AC #4).
+- **Alcance:** no se integró ningún pipeline real (Epic 4/5 todavía no existen en el repo) ni se tocó
+  `index.ts`/`env.ts` — la propia historia lo marca explícitamente fuera de su alcance ("la
+  integración end-to-end contra un MCP real ocurre en Epic 4"). El mecanismo se construyó y probó
+  aislado, con el cliente MCP simulado en los tests, tal como pide la estrategia de testing de la
+  historia.
+- **Sin verificación en producción:** a diferencia de 1.1/1.3/1.4, esta historia no toca
+  infraestructura, variables de entorno ni tablas, y no la consume ningún código real todavía — se
+  cerró en base a la cobertura completa de tests (12 nuevos: 7 unitarios + 5 de concurrencia
+  simulada con `Promise.all`, incluyendo 20 `chat_id` simultáneos) en vez del ciclo habitual de
+  despliegue + confirmación del administrador.
+- **Housekeeping (impacto grande):** al quedar Epic 1 completo (1.1-1.5 done), se liberaron 7
+  historias en simultáneo cuyas dependencias ya estaban satisfechas: `0.4.backups-automaticos`,
+  `3.1.comando-gasto-manual`, `6.1.webhook-dedup-update-id`, `7.1.waterfly-conexion-pat`,
+  `8.3.rotacion-secretos`, `8.4.alertas-caida-servicio`, `8.5.prueba-carga-50-usuarios`. Las 7 ya
+  estaban redactadas como `ready-for-dev` en su propio archivo `.story.md` pero figuraban `backlog`
+  en `sprint-status.yaml` — mismo patrón de inconsistencia visto repetidamente con 1.1/1.3/1.4,
+  corregido para las 7 de una vez. `sprint-status.yaml` ahora lista las 7 en `ready_for_dev`; queda
+  a criterio del usuario cuál elegir primero.
+- **Made by:** dev agent (implementación de 1.5)
+
 ### 2026-09-12 — Historia 1.4 (PAT cifrado en Postgres) cerrada — verificada en producción
 - **Decision:** el administrador aplicó la migración `0002` y configuró `PAT_ENCRYPTION_KEY` en la
   VPS, reinició el Bot Service y confirmó que el flujo `crear` → `completar-pat` cifra (AES-256-GCM)
