@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-13T16:15:00Z"
+last_updated: "2026-09-13T17:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -75,6 +75,7 @@ epics:
   - "5.11.multi-moneda-nl"
   - "5.12.reportes-insights-nl"
   - "5.13.integrar-orquestador-webhook"   # agregada 2026-09-13, gap de planning -- ver decision-log
+  - "5.14.confirmar-acciones-irreversibles"   # agregada 2026-09-13, segundo gap de planning -- ver decision-log
 - id: "epic-6"
   title: "Control de costos y concurrencia"
   description: ""
@@ -499,7 +500,7 @@ stories:
 - id: "5.13.integrar-orquestador-webhook"
   title: "Cablear el orquestador de Gemini al webhook real de Telegram"
   epic_id: "epic-5"
-  status: done   # cerrada 2026-09-13: env.ts + redisClient.ts + geminiMessageHandler.ts (reemplaza echoHandler.ts) + telegramWebhook.ts/server.ts/index.ts, 9 tests -- ver Dev Agent Record para un riesgo de seguridad NO resuelto (confirmacion de acciones irreversibles, 4.3, tampoco cableada a messageOrchestrator)
+  status: done   # cerrada 2026-09-13: env.ts + redisClient.ts + geminiMessageHandler.ts (reemplaza echoHandler.ts) + telegramWebhook.ts/server.ts/index.ts, 9 tests -- riesgo de seguridad detectado (confirmacion de acciones irreversibles no cableada) resuelto en 5.14, misma sesion
   file: "bmad-output/stories/5.13.integrar-orquestador-webhook.story.md"
   parallel_set: 12   # mismo nivel que 5.6-5.12 (dependency-driven: solo depende de 5.1/1.5, ya done) -- comparte messageOrchestrator.ts con 4.3/5.4, telegramWebhook.ts con 2.x/3.x/10.x, coordinar si se despacha junto con esas
   dependencies:
@@ -512,6 +513,20 @@ stories:
   - "bot-service/src/webhook/telegramWebhook.ts"
   - "bot-service/src/server.ts"
   - "bot-service/src/index.ts"
+- id: "5.14.confirmar-acciones-irreversibles"
+  title: "Pedir confirmación antes de ejecutar una acción irreversible vía chat"
+  epic_id: "epic-5"
+  status: done   # cerrada 2026-09-13: resumenAccionIrreversible.ts + messageOrchestrator.ts (rama de confirmacion) + server.ts (registra confirmacionAccionIrreversible.ts de 4.3) + geminiMessageHandler.ts, 27 tests -- resuelve el riesgo detectado al cerrar 5.13
+  file: "bmad-output/stories/5.14.confirmar-acciones-irreversibles.story.md"
+  parallel_set: 13   # depende de 5.13 (misma epica, wave siguiente) ademas de 4.3 (ya done)
+  dependencies:
+  - "4.3.mcp-tools-restringidas"
+  - "5.13.integrar-orquestador-webhook"
+  owned_scope:
+  - "bot-service/src/mcp/resumenAccionIrreversible.ts"
+  - "bot-service/src/handlers/messageOrchestrator.ts"
+  - "bot-service/src/server.ts"
+  - "bot-service/src/handlers/geminiMessageHandler.ts"
 - id: "6.1.webhook-dedup-update-id"
   title: "Descartar webhooks duplicados usando update_id"
   epic_id: "epic-6"
@@ -742,7 +757,7 @@ stories:
   - "bot-service/src/commands/importar.ts"
 sequencing_summary:
   total_epics: 10
-  total_stories: 50   # +1 (5.13, agregada 2026-09-13 -- gap de planning, ver decision-log)
+  total_stories: 51   # +1 (5.13) +1 (5.14), ambas agregadas 2026-09-13 -- gaps de planning, ver decision-log
   total_waves: 16   # recalculado 2026-09-13 (bmad-sprint-planning, post COURSE-CORRECTION) -- las 14 historias nuevas entraron en waves ya existentes, no sumaron waves nuevas
   wave_widths:
   - 1
@@ -757,7 +772,7 @@ sequencing_summary:
   - 1
   - 2   # +1 (4.4, bmad-sprint-planning la subio de wave10 a wave11 para no compartir mcp/README.md con 4.3 en la misma wave)
   - 11  # +7 (5.6-5.12) +1 (5.13, agregada 2026-09-13) -- comparten src/gemini/promptBuilder.ts (5.2/5.6-5.12) y messageOrchestrator.ts/telegramWebhook.ts (5.13/4.3/5.4/2.x/3.x/10.x), coordinar/serializar si se despachan juntas
-  - 2
+  - 3   # +1 (5.14, agregada 2026-09-13) -- comparte messageOrchestrator.ts con 5.4/4.3, server.ts es propio
   - 2
   - 1
   - 1
@@ -925,4 +940,14 @@ sequencing_summary:
     \ tools, incluidas las destructivas, sin pedir confirmacion. Se comunico explicitamente al\
     \ usuario para que decida prioridad antes de dar por listo el bot para uso sin supervision.\
     \ ready_for_dev actualizado: 0.4, 5.4, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11, 5.12, 6.1, 7.1, 8.3, 8.4,\
-    \ 8.5 (14)."
+    \ 8.5 (14).\n\n2026-09-13T17:00:00Z -- 5.14 (confirmar-acciones-irreversibles) cerrada, a\
+    \ pedido explicito del usuario tras presentarle el riesgo detectado en el cierre de 5.13:\
+    \ resumenAccionIrreversible.ts nuevo, messageOrchestrator.ts extendido con una rama que\
+    \ clasifica cada tool call (toolClassification.ts, 4.3) y difiere las irreversibles a\
+    \ confirmacionAccionIrreversible.solicitarConfirmacion (4.3, nunca antes invocado desde ahi),\
+    \ server.ts reestructurado para armar el orquestador con el bot real (necesario para el\
+    \ confirmador) y registrar registerConfirmacionCallbackHandler (4.3, nunca antes registrado),\
+    \ geminiMessageHandler.ts actualizado para el nuevo retorno string|null. 27 tests (17+4+6).\
+    \ El riesgo de seguridad detectado en 5.13 queda resuelto: ninguna tool destructiva se ejecuta\
+    \ sin que el usuario confirme por boton. total_stories 50->51, wave 13 2->3. ready_for_dev sin\
+    \ cambios (14) -- ninguna historia declarada depende de 5.14."

@@ -27,7 +27,12 @@ export function registerGeminiMessageHandler(bot: Bot, messageOrchestrator: Mess
 
     try {
       const respuesta = await messageOrchestrator.procesarMensaje(chatId, ctx.message.text);
-      await sendTelegramMessage(bot, chatId, respuesta);
+      // `null` (historia 5.14): se pidió confirmación de una acción
+      // irreversible -- `confirmacionAccionIrreversible.ts` ya le envió ese
+      // mensaje al usuario, no hay nada más que enviar acá.
+      if (respuesta !== null) {
+        await sendTelegramMessage(bot, chatId, respuesta);
+      }
     } catch (error) {
       if (error instanceof CredencialesNoDisponiblesError) {
         logger.warn({ chat_id: chatId }, "Mensaje de texto libre sin credenciales de Firefly III disponibles");

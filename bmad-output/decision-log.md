@@ -19,6 +19,26 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-13 — Segundo gap de planning: la confirmación de acciones irreversibles (4.3) tampoco estaba cableada. Nueva historia 5.14 agregada
+- **Decision:** se agrega la historia `5.14.confirmar-acciones-irreversibles` a Épica 5, en
+  `ready-for-dev` de inmediato (dependencias -- 4.3, 5.13 -- ya `done`), y se implementa en la
+  misma sesión en que se la detecta, a pedido explícito del usuario tras presentarle el riesgo.
+- **Rationale:** al cerrar 5.13 (que hace alcanzable en producción el ciclo
+  `messageOrchestrator` → `mcpToolExecutor.ejecutarTool`), se verificó si el mecanismo de
+  confirmación explícita para acciones irreversibles (historia 4.3:
+  `toolClassification.clasificarToolCall` + `confirmacionAccionIrreversible.solicitarConfirmacion`,
+  ambos construidos y probados desde 4.3) estaba conectado a ese ciclo. No lo estaba, y una
+  búsqueda explícita en todo el backlog (`grep` de `solicitarConfirmacion`/`clasificarToolCall`
+  en `bmad-output/stories/*.story.md`) confirmó que ninguna historia (ni 5.1 ni 5.4, la
+  candidata más obvia por tocar `messageOrchestrator.ts`) tiene ese cableado en su alcance. Se
+  presentó el riesgo al usuario (Gemini podía ejecutar cualquiera de las 140 tools, incluidas
+  las 16 `delete_*`, sin pedir confirmación) vía `AskUserQuestion`; el usuario eligió resolverlo
+  de inmediato antes de continuar con cualquier otra historia.
+- **Made by:** dev (detección ad-hoc, mismo criterio que la entrada anterior de 5.13)
+- **Supersedes:** ninguna.
+
+---
+
 ### 2026-09-13 — Gap de planning encontrado y corregido: ninguna historia cableaba el orquestador de Gemini al webhook real. Nueva historia 5.13 agregada
 - **Decision:** se agrega la historia `5.13.integrar-orquestador-webhook` ("Cablear el orquestador
   de Gemini al webhook real de Telegram") a Épica 5, en `ready-for-dev` de inmediato (sus

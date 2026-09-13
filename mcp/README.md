@@ -182,15 +182,15 @@ usando el SDK oficial (`@modelcontextprotocol/sdk`, cliente `StreamableHTTPClien
   Gemini puede en teoría pedir cualquiera de las 140 tools, incluidas las destructivas, sin
   pasar por confirmación — aceptado como alcance explícito de esta historia, no un descuido.
 
-**⚠️ Actualización (historia 5.13):** este gap dejó de ser teórico. `messageOrchestrator.ts`
-quedó cableado al webhook real de Telegram en la historia 5.13 (reemplazando el eco de 2.2) —
-el ciclo completo Gemini↔MCP ahora es alcanzable por cualquier usuario real. Se buscó
-explícitamente en el backlog (5.1-5.13) y **ninguna historia tiene
-`confirmacionAccionIrreversible.ts`/`solicitarConfirmacion` en su Owned Scope** — 4.3 construyó
-y probó ese módulo, pero nadie lo invoca todavía desde `messageOrchestrator.ts`. Riesgo real:
-Gemini puede ejecutar `delete_transaction`, `delete_account` u otra tool destructiva sin pedir
-confirmación al usuario. Pendiente de una historia que lo resuelva (ver Dev Agent Record de
-5.13 y decision-log.md).
+**✅ Resuelto (historia 5.14):** el gap de arriba dejó de ser teórico en cuanto 5.13 cableó
+`messageOrchestrator.ts` al webhook real (reemplazando el eco de 2.2) — el ciclo completo
+Gemini↔MCP pasó a ser alcanzable por cualquier usuario real, sin que nada invocara todavía
+`confirmacionAccionIrreversible.solicitarConfirmacion`. La historia 5.14, cerrada en la misma
+sesión a pedido explícito del usuario, agrega esa rama a `messageOrchestrator.ts`: antes de
+ejecutar cualquier tool call, la clasifica con `clasificarToolCall` (4.3); si es
+`"irreversible"`, pide confirmación por botones en el chat y solo ejecuta si el usuario confirma
+-- nunca antes. `registerConfirmacionCallbackHandler` (4.3, construido pero nunca registrado)
+también quedó registrado, en `server.ts`. Ver el Dev Agent Record de 5.14 para el detalle.
 
 ## Auditoría de cobertura frente al catálogo completo de Firefly III (historia 4.4)
 

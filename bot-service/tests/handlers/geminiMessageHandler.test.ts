@@ -103,6 +103,15 @@ describe("registerGeminiMessageHandler (historia 5.13)", () => {
     expect(context).toMatchObject({ chat_id: 555 });
   });
 
+  it("cuando el orquestador devuelve null (confirmación de acción irreversible ya enviada, historia 5.14), no envía nada más", async () => {
+    procesarMensaje.mockResolvedValue(null);
+
+    await bot.handleUpdate(textUpdate(7, 555, "borrá la transacción 42"));
+
+    expect(procesarMensaje).toHaveBeenCalledWith(555, "borrá la transacción 42");
+    expect(sendMessageSpy).not.toHaveBeenCalled();
+  });
+
   it("no rompe ni responde ante un update sin texto, ej. un sticker", async () => {
     await expect(bot.handleUpdate(stickerUpdate(4, 555))).resolves.not.toThrow();
 
