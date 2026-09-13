@@ -4,8 +4,15 @@ import request from "supertest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { logger } from "../../src/lib/logger.js";
 import { createTelegramWebhookHandler } from "../../src/webhook/telegramWebhook.js";
+import type { MessageOrchestrator } from "../../src/handlers/messageOrchestrator.js";
 import { createNeverCalledFireflyClient } from "../helpers/fakeFireflyClient.js";
 import { createAllowAllRepository } from "../helpers/fakeUsuariosRepository.js";
+
+const NUNCA_LLAMADO_MESSAGE_ORCHESTRATOR: MessageOrchestrator = {
+  procesarMensaje: async () => {
+    throw new Error("no debería llamarse: este test mockea bot.handleUpdate completo");
+  },
+};
 
 const FAKE_TOKEN = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11";
 const FAKE_BOT_INFO = {
@@ -42,7 +49,12 @@ async function buildApp() {
   app.use(express.json());
   app.post(
     "/webhook/telegram",
-    createTelegramWebhookHandler(bot, createAllowAllRepository(), createNeverCalledFireflyClient()),
+    createTelegramWebhookHandler(
+      bot,
+      createAllowAllRepository(),
+      createNeverCalledFireflyClient(),
+      NUNCA_LLAMADO_MESSAGE_ORCHESTRATOR,
+    ),
   );
   return { app, bot };
 }

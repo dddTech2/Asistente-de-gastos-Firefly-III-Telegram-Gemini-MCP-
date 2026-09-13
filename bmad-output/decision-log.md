@@ -19,6 +19,34 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-13 — Gap de planning encontrado y corregido: ninguna historia cableaba el orquestador de Gemini al webhook real. Nueva historia 5.13 agregada
+- **Decision:** se agrega la historia `5.13.integrar-orquestador-webhook` ("Cablear el orquestador
+  de Gemini al webhook real de Telegram") a Épica 5, en `ready-for-dev` de inmediato (sus
+  dependencias -- 5.1, 1.5 -- ya están `done`), y se implementa/cierra en la misma sesión que se
+  la detecta.
+- **Rationale:** el usuario reportó en producción que el bot le respondió con un eco literal a
+  una pregunta en lenguaje natural ("¿cuánto llevo gastado este mes?"), pese a que las historias
+  5.1/5.2/5.3 ya estaban `done`. Investigando: ninguna historia de Épica 5 (5.1-5.5) tiene en su
+  Owned File/Module Scope `src/webhook/telegramWebhook.ts` -- 5.1 documentó explícitamente en su
+  propio cierre "ningún handler de Telegram llama a `messageOrchestrator.procesarMensaje`... lista
+  para que 5.2+ la conecte", pero 5.2 y 5.3 excluyeron deliberadamente `messageOrchestrator.ts` de
+  su alcance (correctamente, según sus propias historias), y 5.4 (el candidato más probable, ya
+  que sí toca `messageOrchestrator.ts`) solo agrega ahí una rama de manejo de error de validación
+  -- sus Acceptance Criteria (LOCKED) no piden en ningún punto reemplazar `echoHandler.ts` en el
+  webhook real. Es decir: la tarea de "conectar el pipeline construido al bot real" quedó fuera
+  del alcance declarado de las 5 historias de la épica, un hueco genuino de secuenciación, no una
+  historia que alguien decidió posponer a propósito. Se agrega como historia nueva en vez de
+  ampliar el alcance de 5.4 (evita tocar una historia con Acceptance Criteria LOCKED sin pasar por
+  una actualización explícita de planning) y se cierra de inmediato porque es la que resuelve el
+  problema real reportado por el usuario, con prioridad sobre continuar 5.4 tal cual estaba
+  planeada.
+- **Made by:** dev (detección ad-hoc durante la sesión, sin invocar explícitamente
+  bmad-correct-course; documentado acá para que quede trazable igual que un course-correction
+  formal)
+- **Supersedes:** ninguna -- complementa (no contradice) el cierre de 5.1/5.2/5.3/4.4.
+
+---
+
 ### 2026-09-13 — Historia 4.1: candidato de MCP descartado y reemplazado tras verificación empírica
 - **Decision:** el candidato de MCP originalmente asumido para la historia 4.1
   (`@firefly-iii-mcp/server`, v1.4.0) se descartó tras confirmar en la VPS —

@@ -178,10 +178,19 @@ usando el SDK oficial (`@modelcontextprotocol/sdk`, cliente `StreamableHTTPClien
   a Gemini, y si hay `functionCall` ejecuta la tool vía este executor y reenvía el
   resultado — **todavía sin invocar `clasificarToolCall`/`solicitarConfirmacion`**: ningún
   AC ni escenario de Testing de 5.1 lo pide, así que la confirmación antes de una tool
-  irreversible sigue pendiente de cablearse en una historia posterior (candidata natural:
-  5.4, que ya trata rutas de tool-call inválida/ambigua). Hasta que eso pase, Gemini puede
-  en teoría pedir cualquiera de las 140 tools, incluidas las destructivas, sin pasar por
-  confirmación — aceptado como alcance explícito de esta historia, no un descuido.
+  irreversible sigue pendiente de cablearse en una historia posterior. Hasta que eso pase,
+  Gemini puede en teoría pedir cualquiera de las 140 tools, incluidas las destructivas, sin
+  pasar por confirmación — aceptado como alcance explícito de esta historia, no un descuido.
+
+**⚠️ Actualización (historia 5.13):** este gap dejó de ser teórico. `messageOrchestrator.ts`
+quedó cableado al webhook real de Telegram en la historia 5.13 (reemplazando el eco de 2.2) —
+el ciclo completo Gemini↔MCP ahora es alcanzable por cualquier usuario real. Se buscó
+explícitamente en el backlog (5.1-5.13) y **ninguna historia tiene
+`confirmacionAccionIrreversible.ts`/`solicitarConfirmacion` en su Owned Scope** — 4.3 construyó
+y probó ese módulo, pero nadie lo invoca todavía desde `messageOrchestrator.ts`. Riesgo real:
+Gemini puede ejecutar `delete_transaction`, `delete_account` u otra tool destructiva sin pedir
+confirmación al usuario. Pendiente de una historia que lo resuelva (ver Dev Agent Record de
+5.13 y decision-log.md).
 
 ## Auditoría de cobertura frente al catálogo completo de Firefly III (historia 4.4)
 

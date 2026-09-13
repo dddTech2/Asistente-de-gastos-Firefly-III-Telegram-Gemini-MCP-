@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import { Bot } from "grammy";
 import type { UsuariosRepository } from "./db/usuarios.repository.js";
+import type { MessageOrchestrator } from "./handlers/messageOrchestrator.js";
 import type { FireflyClient } from "./services/firefly-client.js";
 import { createTelegramWebhookHandler } from "./webhook/telegramWebhook.js";
 import { createVerifySecretToken } from "./webhook/verifySecretToken.js";
@@ -11,6 +12,7 @@ export interface ServerOptions {
   webhookPath: string;
   usuariosRepository: UsuariosRepository;
   fireflyClient: FireflyClient;
+  messageOrchestrator: MessageOrchestrator;
 }
 
 export async function createServer(options: ServerOptions): Promise<Express> {
@@ -27,7 +29,7 @@ export async function createServer(options: ServerOptions): Promise<Express> {
   app.post(
     options.webhookPath,
     createVerifySecretToken(options.webhookSecret),
-    createTelegramWebhookHandler(bot, options.usuariosRepository, options.fireflyClient),
+    createTelegramWebhookHandler(bot, options.usuariosRepository, options.fireflyClient, options.messageOrchestrator),
   );
 
   return app;

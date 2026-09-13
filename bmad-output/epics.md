@@ -202,6 +202,7 @@ natural, sin comandos rígidos.
 | 5.10 | automatizacion-nl | Bills/suscripciones, transacciones recurrentes y reglas vía lenguaje natural | ready-for-dev (desbloqueada 2026-09-13 al cerrar 4.4) |
 | 5.11 | multi-moneda-nl | Cuentas/transacciones en distinta moneda vía lenguaje natural | ready-for-dev (desbloqueada 2026-09-13 al cerrar 4.4) |
 | 5.12 | reportes-insights-nl | Reportes, búsqueda e insights de gasto vía lenguaje natural | ready-for-dev (desbloqueada 2026-09-13 al cerrar 4.4) |
+| 5.13 | integrar-orquestador-webhook | Cablear el orquestador de Gemini al webhook real de Telegram (reemplaza el eco) | done — geminiMessageHandler.ts + redisClient.ts + env.ts, 9 tests. ⚠️ ver Dev Agent Record: confirmación de acciones irreversibles (4.3) todavía no cableada |
 
 **Cross-epic dependencies:**
 - Blocked by: Epic 4 (5.6-5.12 dependen además de 4.4, el spike de cobertura de tools).

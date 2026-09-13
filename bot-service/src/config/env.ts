@@ -39,4 +39,12 @@ export const env = {
   // Firefly exige una para crear un withdrawal. No especificado por ningún
   // documento fuente de la historia [Inference], ver Dev Agent Record de 3.1.
   fireflySourceAccount: required("FIREFLY_SOURCE_ACCOUNT"),
+  // Historia 5.13: el proceso principal ahora sí construye el orquestador de
+  // Gemini (geminiClient/mcpToolExecutor/historyStore) para mensajes de texto
+  // libre -- estas cuatro variables ya estaban documentadas en `.env.example`
+  // desde la historia 5.1, pero ningún proceso las leía hasta esta historia.
+  geminiApiKey: required("GEMINI_API_KEY"),
+  geminiModel: process.env.GEMINI_MODEL || "gemini-flash-latest",
+  mcpFireflyUrl: required("MCP_FIREFLY_URL"),
+  redisUrl: required("REDIS_URL"),
 };

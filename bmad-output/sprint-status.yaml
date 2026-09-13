@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-13T15:30:00Z"
+last_updated: "2026-09-13T16:15:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -67,6 +67,14 @@ epics:
   - "5.3.consulta-gasto-nl"
   - "5.4.aclaracion-dato-invalido"
   - "5.5.memoria-conversacion-corta"
+  - "5.6.transacciones-avanzadas-nl"
+  - "5.7.cuentas-pasivos-nl"
+  - "5.8.organizacion-nl"
+  - "5.9.presupuestos-ahorro-nl"
+  - "5.10.automatizacion-nl"
+  - "5.11.multi-moneda-nl"
+  - "5.12.reportes-insights-nl"
+  - "5.13.integrar-orquestador-webhook"   # agregada 2026-09-13, gap de planning -- ver decision-log
 - id: "epic-6"
   title: "Control de costos y concurrencia"
   description: ""
@@ -488,6 +496,22 @@ stories:
   - "4.4.auditoria-cobertura-tools-mcp"
   owned_scope:
   - "bot-service/src/gemini/prompts/reportesInsights.prompt.ts"
+- id: "5.13.integrar-orquestador-webhook"
+  title: "Cablear el orquestador de Gemini al webhook real de Telegram"
+  epic_id: "epic-5"
+  status: done   # cerrada 2026-09-13: env.ts + redisClient.ts + geminiMessageHandler.ts (reemplaza echoHandler.ts) + telegramWebhook.ts/server.ts/index.ts, 9 tests -- ver Dev Agent Record para un riesgo de seguridad NO resuelto (confirmacion de acciones irreversibles, 4.3, tampoco cableada a messageOrchestrator)
+  file: "bmad-output/stories/5.13.integrar-orquestador-webhook.story.md"
+  parallel_set: 12   # mismo nivel que 5.6-5.12 (dependency-driven: solo depende de 5.1/1.5, ya done) -- comparte messageOrchestrator.ts con 4.3/5.4, telegramWebhook.ts con 2.x/3.x/10.x, coordinar si se despacha junto con esas
+  dependencies:
+  - "5.1.prompt-tools-gemini"
+  - "1.5.pat-por-request-mcp"
+  owned_scope:
+  - "bot-service/src/config/env.ts"
+  - "bot-service/src/lib/redisClient.ts"
+  - "bot-service/src/handlers/geminiMessageHandler.ts"
+  - "bot-service/src/webhook/telegramWebhook.ts"
+  - "bot-service/src/server.ts"
+  - "bot-service/src/index.ts"
 - id: "6.1.webhook-dedup-update-id"
   title: "Descartar webhooks duplicados usando update_id"
   epic_id: "epic-6"
@@ -718,7 +742,7 @@ stories:
   - "bot-service/src/commands/importar.ts"
 sequencing_summary:
   total_epics: 10
-  total_stories: 49
+  total_stories: 50   # +1 (5.13, agregada 2026-09-13 -- gap de planning, ver decision-log)
   total_waves: 16   # recalculado 2026-09-13 (bmad-sprint-planning, post COURSE-CORRECTION) -- las 14 historias nuevas entraron en waves ya existentes, no sumaron waves nuevas
   wave_widths:
   - 1
@@ -732,7 +756,7 @@ sequencing_summary:
   - 1
   - 1
   - 2   # +1 (4.4, bmad-sprint-planning la subio de wave10 a wave11 para no compartir mcp/README.md con 4.3 en la misma wave)
-  - 10  # +7 (5.6-5.12) -- comparten src/gemini/promptBuilder.ts con 5.2 y entre si, coordinar/serializar si se despachan juntas
+  - 11  # +7 (5.6-5.12) +1 (5.13, agregada 2026-09-13) -- comparten src/gemini/promptBuilder.ts (5.2/5.6-5.12) y messageOrchestrator.ts/telegramWebhook.ts (5.13/4.3/5.4/2.x/3.x/10.x), coordinar/serializar si se despachan juntas
   - 2
   - 2
   - 1
@@ -880,4 +904,25 @@ sequencing_summary:
     \ para cualquier otro texto -- todo el pipeline de Gemini de 5.1/5.2/5.3 esta construido y\
     \ testeado pero nunca conectado al flujo real, por diseño deliberado documentado desde el\
     \ cierre de 5.1). ready_for_dev actualizado: 0.4, 5.4, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11, 5.12,\
-    \ 6.1, 7.1, 8.3, 8.4, 8.5 (14)."
+    \ 6.1, 7.1, 8.3, 8.4, 8.5 (14).\n\n2026-09-13T15:45:00Z -- GAP DE PLANNING encontrado y\
+    \ corregido: el usuario probo el bot en produccion y recibio un eco literal en vez de una\
+    \ respuesta de Gemini, pese a que 5.1/5.2/5.3 estaban done. Ninguna historia de Epica 5\
+    \ tenia en su alcance conectar messageOrchestrator.ts al webhook real de Telegram -- 5.1 lo\
+    \ dejo documentado como pendiente para una historia posterior (5.2+), pero 5.2/5.3 excluyeron correctamente\
+    \ messageOrchestrator.ts de su alcance, y 5.4 (que si lo toca) solo agrega ahi una rama de\
+    \ error de validacion, sin tocar telegramWebhook.ts. Se agrega la historia nueva 5.13\
+    \ (integrar-orquestador-webhook) en ready-for-dev de inmediato (dependencias 5.1+1.5 ya\
+    \ done) -- ver decision-log.md para el detalle completo. total_stories 49->50, wave 12\
+    \ 10->11. ready_for_dev actualizado: 0.4, 5.4, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11, 5.12, 5.13,\
+    \ 6.1, 7.1, 8.3, 8.4, 8.5 (15).\n\n2026-09-13T16:15:00Z -- 5.13 (integrar-orquestador-webhook)\
+    \ cerrada: env.ts lee GEMINI_API_KEY/MCP_FIREFLY_URL/REDIS_URL de verdad, redisClient.ts nuevo,\
+    \ geminiMessageHandler.ts reemplaza a echoHandler.ts (eliminado) en telegramWebhook.ts, 9 tests\
+    \ nuevos. El bot ahora SI responde con Gemini a mensajes de texto libre en produccion --\
+    \ resuelve el problema original reportado por el usuario (eco literal). RIESGO DETECTADO Y NO\
+    \ RESUELTO, documentado en el Dev Agent Record de 5.13: ninguna historia del backlog cablea\
+    \ confirmacionAccionIrreversible.ts (historia 4.3, ya construido/probado) a\
+    \ messageOrchestrator.ts -- con 5.13 en produccion, Gemini puede ejecutar CUALQUIERA de las 140\
+    \ tools, incluidas las destructivas, sin pedir confirmacion. Se comunico explicitamente al\
+    \ usuario para que decida prioridad antes de dar por listo el bot para uso sin supervision.\
+    \ ready_for_dev actualizado: 0.4, 5.4, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11, 5.12, 6.1, 7.1, 8.3, 8.4,\
+    \ 8.5 (14)."
