@@ -1,7 +1,7 @@
 # MCP de Firefly III (historia 4.1)
 
 Servidor MCP de terceros ([`daften/fireflyiii-mcp`](https://github.com/daften/fireflyiii-mcp),
-imagen `ghcr.io/daften/fireflyiii-mcp:v0.4.6`, MIT, Node ≥20) desplegado en
+imagen `ghcr.io/daften/fireflyiii-mcp:0.4.6`, MIT, Node ≥20) desplegado en
 modo **multi-tenant por-request**: sin PAT propio fijado en el contenedor —
 cada llamada trae el PAT del usuario que la origina. Es la pieza que hace
 viable servir a los ~50 usuarios desde un solo servicio, dejando el

@@ -125,7 +125,7 @@ services:
   # index.ts: token resuelto por request vía AsyncLocalStorage, nunca un
   # valor fijo global), no solo su documentación.
   mcp-firefly:
-    image: ghcr.io/daften/fireflyiii-mcp:v0.4.6
+    image: ghcr.io/daften/fireflyiii-mcp:0.4.6
     container_name: mcp-firefly
     restart: unless-stopped
     command: ["--transport", "http", "--host", "0.0.0.0", "--port", "3000"]

@@ -26,7 +26,7 @@ or delete past entries — supersede them with a new entry that references the o
   igual una cuenta real de producción: el paquete ignora por completo las
   credenciales por-request pese a documentarlas en su README, y usa siempre
   el PAT/URL fijo del arranque. Se reemplazó por `daften/fireflyiii-mcp`
-  (`ghcr.io/daften/fireflyiii-mcp:v0.4.6`), verificado esta vez leyendo el
+  (`ghcr.io/daften/fireflyiii-mcp:0.4.6`), verificado esta vez leyendo el
   código fuente (`http.ts`/`client.ts`/`index.ts`) antes de tocar infra: el
   token sí se resuelve por request vía `AsyncLocalStorage`, y además cubre
   140 tools en 14 grupos contra ~41 del descartado.

@@ -39,7 +39,7 @@ expuesto por ese nginx). Firefly sigue exactamente ese patrón: no se levanta
 ningún reverse proxy nuevo en Docker.
 
 - **`mcp-firefly`** (historia 4.1) — servidor MCP de Firefly III de terceros
-  (`daften/fireflyiii-mcp`, imagen `ghcr.io/daften/fireflyiii-mcp:v0.4.6`).
+  (`daften/fireflyiii-mcp`, imagen `ghcr.io/daften/fireflyiii-mcp:0.4.6`).
   Segundo candidato evaluado: el primero (`@firefly-iii-mcp/server`) se
   descartó por ignorar las credenciales por-header pese a documentarlas —
   ver `mcp/README.md` y el Dev Agent Record de la historia 4.1 para el
