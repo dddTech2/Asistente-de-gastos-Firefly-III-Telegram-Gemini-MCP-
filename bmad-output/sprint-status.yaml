@@ -293,7 +293,7 @@ stories:
 - id: "4.1.mcp-multitenant-deploy"
   title: "Desplegar el MCP de Firefly III en modo multi-tenant"
   epic_id: "epic-4"
-  status: "backlog  # BLOQUEADA 2026-09-13 -- AC #1 no se cumple con @firefly-iii-mcp/server (ignora credenciales por-header, verificado empiricamente). Requiere decision de planning: candidato alternativo o MCP propio. Ver Dev Agent Record."
+  status: "in-progress  # Re-desbloqueada 2026-09-13 con segundo candidato (daften/fireflyiii-mcp), AC #1 verificado por codigo fuente. Pendiente verificacion manual en produccion (AC #3/#4/#5). Ver Dev Agent Record."
   file: "bmad-output/stories/4.1.mcp-multitenant-deploy.story.md"
   parallel_set: 8
   dependencies:

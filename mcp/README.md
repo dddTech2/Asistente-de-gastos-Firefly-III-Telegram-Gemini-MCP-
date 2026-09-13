@@ -1,83 +1,99 @@
-# MCP de Firefly III (historia 4.1) — BLOQUEADA, NO USAR EN PRODUCCIÓN
+# MCP de Firefly III (historia 4.1)
 
-> **⚠️ Este servicio NO logra aislamiento multi-tenant.** Verificado
-> empíricamente el 2026-09-13: `@firefly-iii-mcp/server` v1.4.0 ignora por
-> completo los headers `Authorization`/`X-Firefly-III-Url` de cada request y
-> usa siempre el PAT/URL fijados al arrancar el contenedor (confirmado
-> mandando headers con basura y recibiendo igual una cuenta real de
-> producción). El README público del proyecto upstream promete un modo
-> "por-header" que el código de esta versión no implementa. **No desplegar
-> este contenedor con un PAT real contra la instancia de producción** — ver
-> el Dev Agent Record de `bmad-output/stories/4.1.mcp-multitenant-deploy.story.md`
-> para el detalle completo y las alternativas en evaluación.
+Servidor MCP de terceros ([`daften/fireflyiii-mcp`](https://github.com/daften/fireflyiii-mcp),
+imagen `ghcr.io/daften/fireflyiii-mcp:v0.4.6`, MIT, Node ≥20) desplegado en
+modo **multi-tenant por-request**: sin PAT propio fijado en el contenedor —
+cada llamada trae el PAT del usuario que la origina. Es la pieza que hace
+viable servir a los ~50 usuarios desde un solo servicio, dejando el
+aislamiento de datos en manos de Firefly III (que ya lo hace por `user_id`),
+no de lógica custom.
 
-Lo que sigue describe el diseño **original, invalidado** — se deja como
-referencia de qué se intentó y por qué no sirve, no como instrucción de uso.
+## ⚠️ Primer candidato descartado
 
----
-
-Servidor MCP de terceros ([`@firefly-iii-mcp/server`](https://github.com/etnperlong/firefly-iii-mcp),
-v1.4.0) desplegado en modo **multi-tenant por-request**: el contenedor no
-tiene fijado ningún PAT ni URL de Firefly III propios — cada llamada trae sus
-propias credenciales. Es la pieza que hace viable servir a los ~50 usuarios
-desde un solo servicio, dejando el aislamiento de datos en manos de Firefly
-III (que ya lo hace por `user_id`), no de lógica custom.
+Antes de este, se evaluó `@firefly-iii-mcp/server` (v1.4.0) y se descartó:
+pese a documentar un modo "por header", su código real usa siempre el
+PAT/URL fijados al arrancar el contenedor — confirmado empíricamente
+sirviendo una cuenta real de producción con headers de `Authorization`/
+`X-Firefly-III-Url` inválidos. Detalle completo en el Dev Agent Record de
+`bmad-output/stories/4.1.mcp-multitenant-deploy.story.md` y en
+`decision-log.md`. `daften/fireflyiii-mcp` se verificó con el mismo rigor
+(código fuente, no solo README) antes de adoptarlo — ver más abajo.
 
 ## Contrato de headers (para quien consuma este MCP — Epic 5)
 
 | Header | Valor |
 |---|---|
 | `Authorization` | `Bearer <PAT del usuario>` — el PAT propio del `chat_id` que originó el mensaje, nunca uno compartido |
-| `X-Firefly-III-Url` | URL base de la instancia Firefly III (la misma para todos los usuarios en este proyecto: una sola instancia, Épica 0) |
 
-Sin estos dos headers (o con un PAT inválido), la request no debe devolver
-datos de ningún usuario — no hay credencial por defecto a la cual caer.
+La URL de Firefly III **no** viaja por header en este candidato — es fija a
+nivel de contenedor (`FIREFLY_URL`, apuntando a la instancia interna de
+Docker), porque en este proyecto hay una única instancia Firefly III
+compartida por todos los usuarios (Épica 0, arquitectura "Opción B"). Lo que
+varía por usuario es solo el PAT.
+
+Sin el header `Authorization` (o con un PAT inválido), Firefly III rechaza
+la request con su propio error de autenticación — no hay PAT por defecto al
+cual caer (modo "PAT-only": el servicio arranca sin
+`FIREFLY_OAUTH_CLIENT_ID`, lo que desactiva el flujo OAuth y exige Bearer
+token en cada llamada).
+
+## Verificación del patrón por-request (AC #1)
+
+Confirmado leyendo el código fuente del proyecto (no solo su documentación,
+tras el error con el primer candidato):
+
+- `src/http.ts`: extrae el token del header `Authorization: Bearer <token>`
+  en cada request y lo guarda en `AsyncLocalStorage` para esa request.
+- `src/client.ts`: `FireflyClient` recibe un `tokenResolver` (función, no
+  string fijo) y lo invoca en cada llamada HTTP a Firefly III.
+- `src/index.ts`: el resolver pasado al cliente HTTP es
+  `() => requestContext.getStore().token` — lee el token de la request en
+  curso, no un valor global. El modo `stdio` (para clientes locales tipo
+  Claude Desktop) sí usa un token fijo, pero ese modo no se usa acá.
 
 ## Transporte
 
-HTTP (Streamable HTTP + Server-Sent Events), **no stdio** — necesario porque
-el Bot Service (proceso pm2 separado, no el mismo proceso que el MCP) le
-pega por red, igual que le pega a Firefly III. Puerto interno del contenedor:
-`3000`.
+HTTP (`--transport http`). Puerto interno del contenedor: `3000` (por eso
+`--host 0.0.0.0` en el `command` — el default del binario es `127.0.0.1`,
+que no sería alcanzable desde fuera del contenedor).
 
 ## Despliegue
 
-Se agrega como servicio `mcp-firefly` en `infra/docker-compose.yml`, mismo
-patrón que `bot-postgres`/`bot-redis`: publicado **solo en `127.0.0.1`**
-(nunca `0.0.0.0`) — el Bot Service (proceso host) lo alcanza por
+Servicio `mcp-firefly` en `infra/docker-compose.yml`, mismo patrón que
+`bot-postgres`/`bot-redis`: publicado **solo en `127.0.0.1`** (nunca
+`0.0.0.0`) — el Bot Service (proceso pm2 en el host) lo alcanza por
 `localhost:${MCP_FIREFLY_PORT}`, sin exponerlo a Internet.
 
 ```bash
 cd infra
-docker compose up -d --build mcp-firefly
+docker compose up -d mcp-firefly
 ```
 
-**Variables de entorno que este servicio deliberadamente NO tiene:**
-`FIREFLY_III_PAT`, `FIREFLY_III_BASE_URL` — fijarlas volvería el servicio
-mono-tenant (todas las requests usarían ese PAT, ignorando el del usuario
-real). El único valor de infra es `MCP_FIREFLY_PORT` (puerto de publicación
-en el host), documentado en `infra/.env.example`.
+**Variables de entorno relevantes:**
+- `FIREFLY_URL` — fija, interna (`http://firefly-iii-app:8080` por defecto,
+  mismo Docker network) — la URL pública de Firefly III no hace falta acá.
+- `MCP_FIREFLY_PORT` — puerto de publicación en el host (default 3100,
+  documentado en `infra/.env.example`).
+- **A propósito NO hay** `FIREFLY_OAUTH_CLIENT_ID` ni ningún PAT — fijar un
+  PAT acá volvería el servicio mono-tenant.
 
 ## Verificación de aislamiento (AC #3, #4, #5 de la historia 4.1)
 
-Con dos PATs de prueba de dos cuentas Firefly III distintas (usuario A y B):
+Handshake MCP (`initialize` → `tools/list` → `tools/call`) igual que
+cualquier servidor MCP HTTP+SSE. Ejemplo mínimo:
 
 ```bash
-curl -s http://127.0.0.1:${MCP_FIREFLY_PORT:-3100}/mcp \
+curl -s -m 10 http://127.0.0.1:${MCP_FIREFLY_PORT:-3100}/mcp \
   -H "Authorization: Bearer <PAT_USUARIO_A>" \
-  -H "X-Firefly-III-Url: https://firefly.nyoholding.com" \
   -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list_accounts","arguments":{}}}'
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
 ```
 
-Repetir con el PAT de B y confirmar que la respuesta cambia (datos de B, no
-de A). Luego `docker logs mcp-firefly` y confirmar que ningún PAT aparece en
-texto plano (por eso el `--logLevel info`, no `debug`, en el `Dockerfile`).
-
-## Desviación de alcance documentada: imagen Docker propia
-
-El proyecto upstream no publica una imagen Docker oficial — solo el paquete
-npm. Se agregó `mcp/Dockerfile` (no mencionado en el Owned File/Module Scope
-original de la historia) para poder declarar el servicio con `build:` en
-`docker-compose.yml`, ya que el AC #2 exige un despliegue vía Docker Compose.
-[Inference]
+Tomar el `mcp-session-id` de la respuesta, listar tools con `tools/list`, y
+llamar una tool de solo lectura (ej. la de listar cuentas) con ese
+`mcp-session-id` + el PAT de A. Repetir todo con el PAT de B y confirmar que
+la respuesta cambia (cuentas de B, no de A) — igual que se hizo para
+descartar el primer candidato, pero esta vez esperando que SÍ cambie.
+Después `docker logs mcp-firefly` para confirmar que ningún PAT quedó en
+texto plano.

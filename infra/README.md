@@ -38,14 +38,16 @@ patrón que ya usa `nyoholding-contact-api` (bindeado a `127.0.0.1:8000` y
 expuesto por ese nginx). Firefly sigue exactamente ese patrón: no se levanta
 ningún reverse proxy nuevo en Docker.
 
-- **`mcp-firefly`** (historia 4.1) — **BLOQUEADA, no levantar con un PAT
-  real.** Servicio pensado para el MCP de Firefly III de terceros
-  (`@firefly-iii-mcp/server`, `mcp/Dockerfile`), pero se verificó
-  empíricamente (2026-09-13) que ese paquete ignora las credenciales
-  por-header y usa siempre el PAT fijo del arranque — no sirve para
-  multi-tenant. Queda definido en el compose solo como referencia técnica
-  del despliegue Docker; ver `mcp/README.md` y el Dev Agent Record de la
-  historia 4.1 para el detalle y las alternativas en evaluación.
+- **`mcp-firefly`** (historia 4.1) — servidor MCP de Firefly III de terceros
+  (`daften/fireflyiii-mcp`, imagen `ghcr.io/daften/fireflyiii-mcp:v0.4.6`).
+  Segundo candidato evaluado: el primero (`@firefly-iii-mcp/server`) se
+  descartó por ignorar las credenciales por-header pese a documentarlas —
+  ver `mcp/README.md` y el Dev Agent Record de la historia 4.1 para el
+  detalle de ambas verificaciones. Este sí implementa credenciales
+  por-request de verdad (confirmado en su código fuente): sin PAT fijo,
+  cada llamada trae el suyo por header `Authorization`. Publicado solo en
+  `127.0.0.1:${MCP_FIREFLY_PORT}` (default 3100), consumido por el Bot
+  Service (Épica 5) — nunca expuesto a Internet.
 
 ## Por qué MariaDB y no Postgres acá
 

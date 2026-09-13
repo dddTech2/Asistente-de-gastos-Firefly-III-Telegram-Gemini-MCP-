@@ -116,24 +116,34 @@ services:
       timeout: 5s
       retries: 10
 
-  # BLOQUEADO (historia 4.1, 2026-09-13): @firefly-iii-mcp/server ignora las
-  # credenciales por-header pese a documentarlas -- verificado empíricamente
-  # que usa siempre el PAT/URL fijo del arranque (ver mcp/README.md y el Dev
-  # Agent Record de 4.1). NO levantar este servicio con FIREFLY_III_PAT/
-  # FIREFLY_III_BASE_URL reales: serviría los datos de una sola cuenta a
-  # los ~50 usuarios. Se deja definido solo como referencia de que el
-  # despliegue Docker en sí funciona, a la espera de un candidato/enfoque
-  # alternativo.
+  # MCP de Firefly III (historia 4.1) -- segundo candidato, tras bloquear
+  # @firefly-iii-mcp/server (ver decision-log.md y el Dev Agent Record de
+  # 4.1). daften/fireflyiii-mcp SÍ implementa credenciales por-request de
+  # verdad: en modo "PAT-only" (sin FIREFLY_OAUTH_CLIENT_ID) exige un header
+  # `Authorization: Bearer <PAT>` en cada llamada y lo reenvía tal cual a
+  # Firefly III -- verificado leyendo su código fuente (http.ts/client.ts/
+  # index.ts: token resuelto por request vía AsyncLocalStorage, nunca un
+  # valor fijo global), no solo su documentación.
   mcp-firefly:
-    build:
-      context: ../mcp
-      dockerfile: Dockerfile
+    image: ghcr.io/daften/fireflyiii-mcp:v0.4.6
     container_name: mcp-firefly
     restart: unless-stopped
-    # Deliberadamente SIN env_file/FIREFLY_III_PAT/FIREFLY_III_BASE_URL: la
-    # intención original era multi-tenant por-request -- ver bloqueo arriba.
+    command: ["--transport", "http", "--host", "0.0.0.0", "--port", "3000"]
+    environment:
+      # URL interna del contenedor de Firefly III en esta misma red Docker --
+      # evita depender del dominio público/TLS para una llamada contenedor a
+      # contenedor. Es la MISMA para todos los usuarios (una sola instancia
+      # Firefly III, Épica 0); lo que varía por-usuario es el PAT, y ese NO
+      # se fija acá -- viaja en el header Authorization de cada request
+      # (ver mcp/README.md).
+      FIREFLY_URL: ${MCP_FIREFLY_UPSTREAM_URL:-http://firefly-iii-app:8080}
+      # Deliberadamente SIN FIREFLY_OAUTH_CLIENT_ID: su sola ausencia pone al
+      # servidor en modo PAT-only (exige Bearer token por request, sin flujo
+      # OAuth). Definirla lo cambiaría de modo.
     ports:
       - "127.0.0.1:${MCP_FIREFLY_PORT:-3100}:3000"
+    depends_on:
+      - firefly-iii-app
     networks:
       - firefly-iii-net
 

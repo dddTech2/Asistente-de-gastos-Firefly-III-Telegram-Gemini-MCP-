@@ -19,6 +19,41 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-13 — Historia 4.1: candidato de MCP descartado y reemplazado tras verificación empírica
+- **Decision:** el candidato de MCP originalmente asumido para la historia 4.1
+  (`@firefly-iii-mcp/server`, v1.4.0) se descartó tras confirmar en la VPS —
+  con headers `Authorization`/`X-Firefly-III-Url` inválidos — que devolvía
+  igual una cuenta real de producción: el paquete ignora por completo las
+  credenciales por-request pese a documentarlas en su README, y usa siempre
+  el PAT/URL fijo del arranque. Se reemplazó por `daften/fireflyiii-mcp`
+  (`ghcr.io/daften/fireflyiii-mcp:v0.4.6`), verificado esta vez leyendo el
+  código fuente (`http.ts`/`client.ts`/`index.ts`) antes de tocar infra: el
+  token sí se resuelve por request vía `AsyncLocalStorage`, y además cubre
+  140 tools en 14 grupos contra ~41 del descartado.
+- **Rationale:** el AC #1 de la historia 4.1 exige detenerse si el candidato
+  no soporta credenciales por-request — no desplegar un MCP mono-tenant.
+  Confiar solo en documentación pública (README, resúmenes de terceros)
+  resultó insuficiente: el primer candidato documentaba un comportamiento
+  que su código no implementaba. Lección para toda evaluación futura de un
+  componente de terceros con implicancias de seguridad/aislamiento: verificar
+  contra el código fuente y, cuando sea barato hacerlo, con una prueba
+  empírica (headers inválidos que deberían fallar si el mecanismo funciona
+  como se espera) antes de construir infra alrededor.
+- **Impact:** `infra/docker-compose.yml` (servicio `mcp-firefly` reemplazado
+  de `build:` propio a `image:` oficial), `mcp/Dockerfile` eliminado,
+  `mcp/README.md` reescrito, `bmad-output/stories/4.1.mcp-multitenant-deploy.story.md`
+  Dev Agent Record documenta ambas verificaciones. `sprint-status.yaml`: 4.1
+  vuelve a `in-progress` (pasó brevemente por `backlog` mientras estuvo
+  bloqueada). 4.2/4.3 (dependientes de 4.1) sin cambios de estado — seguían
+  bloqueadas transitivamente durante el intervalo y ahora depende de que 4.1
+  cierre con la verificación manual pendiente en producción.
+- **In-progress stories affected:** 4.1 (mcp-multitenant-deploy).
+- **Made by:** dev tool externo (esta sesión), documentado aquí porque es una
+  decisión de arquitectura/candidato tecnológico, no solo una corrección de
+  código dentro del scope ya definido de la historia.
+- **Supersedes:** ninguna entrada previa — primera vez que se evalúa un
+  candidato de MCP concreto para Epic 4.
+
 ### 2026-09-13 — Resecuenciado tras corrección de rumbo (bmad-sprint-planning)
 - **Decision:** recalculado el grafo de dependencias completo de `sprint-status.yaml` tras la
   corrección de rumbo (entrada anterior). Las 14 historias nuevas quedaron asignadas a waves ya
