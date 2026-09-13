@@ -293,7 +293,7 @@ stories:
 - id: "4.1.mcp-multitenant-deploy"
   title: "Desplegar el MCP de Firefly III en modo multi-tenant"
   epic_id: "epic-4"
-  status: ready-for-dev
+  status: in-progress
   file: "bmad-output/stories/4.1.mcp-multitenant-deploy.story.md"
   parallel_set: 8
   dependencies:
@@ -737,10 +737,9 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 7
+    count: 6
     story_ids:
     - "0.4.backups-automaticos"
-    - "4.1.mcp-multitenant-deploy"
     - "6.1.webhook-dedup-update-id"
     - "7.1.waterfly-conexion-pat"
     - "8.3.rotacion-secretos"

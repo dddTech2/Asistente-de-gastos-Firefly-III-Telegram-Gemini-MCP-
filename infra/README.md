@@ -38,6 +38,14 @@ patrón que ya usa `nyoholding-contact-api` (bindeado a `127.0.0.1:8000` y
 expuesto por ese nginx). Firefly sigue exactamente ese patrón: no se levanta
 ningún reverse proxy nuevo en Docker.
 
+- **`mcp-firefly`** (historia 4.1) — servidor MCP de Firefly III de terceros
+  (`@firefly-iii-mcp/server`), construido desde `mcp/Dockerfile` (no hay
+  imagen oficial). Multi-tenant por-request: sin PAT ni URL de Firefly III
+  fijos, cada llamada trae las suyas por header. Publicado solo en
+  `127.0.0.1:${MCP_FIREFLY_PORT}` (default 3100), consumido por el Bot
+  Service (Épica 5) — nunca expuesto a Internet. Ver `mcp/README.md` para el
+  contrato de headers y la verificación de aislamiento entre usuarios.
+
 ## Por qué MariaDB y no Postgres acá
 
 Firefly III recomienda oficialmente MariaDB. El diseño v2 del proyecto usa

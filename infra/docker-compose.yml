@@ -116,6 +116,26 @@ services:
       timeout: 5s
       retries: 10
 
+  mcp-firefly:
+    build:
+      context: ../mcp
+      dockerfile: Dockerfile
+    container_name: mcp-firefly
+    restart: unless-stopped
+    # Deliberadamente SIN env_file/FIREFLY_III_PAT/FIREFLY_III_BASE_URL: este
+    # servicio es multi-tenant por-request (historia 4.1) -- cada llamada
+    # trae su propio PAT y URL por header (Authorization / X-Firefly-III-Url,
+    # ver mcp/README.md). Fijar esas variables acá lo volvería mono-tenant.
+    #
+    # Publicado solo en 127.0.0.1 -- el Bot Service (proceso pm2 en el host,
+    # no un contenedor de este compose) lo alcanza por localhost, igual que
+    # bot-postgres/bot-redis. Nunca en 0.0.0.0: no hay caso de uso donde deba
+    # ser accesible desde Internet.
+    ports:
+      - "127.0.0.1:${MCP_FIREFLY_PORT:-3100}:3000"
+    networks:
+      - firefly-iii-net
+
 volumes:
   firefly_iii_db:
     name: firefly_iii_db
