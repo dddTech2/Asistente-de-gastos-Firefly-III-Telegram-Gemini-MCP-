@@ -182,3 +182,14 @@ usando el SDK oficial (`@modelcontextprotocol/sdk`, cliente `StreamableHTTPClien
   5.4, que ya trata rutas de tool-call inválida/ambigua). Hasta que eso pase, Gemini puede
   en teoría pedir cualquiera de las 140 tools, incluidas las destructivas, sin pasar por
   confirmación — aceptado como alcance explícito de esta historia, no un descuido.
+
+## Auditoría de cobertura frente al catálogo completo de Firefly III (historia 4.4)
+
+Las 140 tools clasificadas contra los 7 grupos funcionales que usa el roadmap de Épica 5
+(5.6-5.12): 4 de 7 grupos cubiertos sin gaps, 3 cubiertos parcialmente (reconciliación de
+transacciones, cuentas de tipo `liability`, transacciones en moneda distinta a la de la
+cuenta) — los tres requieren extender el MCP (forwarding de campos que la API de Firefly ya
+soporta, verificado con invocaciones reales que Firefly rechaza por falta de esos campos en
+el `inputSchema`). Detalle completo, con las recomendaciones por gap, en
+[`cobertura-firefly.md`](./cobertura-firefly.md) — es el insumo directo de 5.6-5.12, no
+repetir esta exploración ahí.

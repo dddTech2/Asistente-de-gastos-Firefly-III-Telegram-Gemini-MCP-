@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-13T13:00:00Z"
+last_updated: "2026-09-13T14:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -51,7 +51,7 @@ epics:
 - id: "epic-4"
   title: "Servidor MCP"
   description: ""
-  status: in-progress
+  status: done
   story_ids:
   - "4.1.mcp-multitenant-deploy"
   - "4.2.mcp-inspector-test"
@@ -332,7 +332,7 @@ stories:
 - id: "4.4.auditoria-cobertura-tools-mcp"
   title: "Auditoría de cobertura de tools del MCP frente al catálogo completo de Firefly III"
   epic_id: "epic-4"
-  status: ready-for-dev   # desbloqueada 2026-09-13: sus 2 dependencias (4.1, 4.2) ya estan done
+  status: done   # cerrada 2026-09-13: mcp/cobertura-firefly.md -- 4/7 grupos cubiertos, 3 parciales (reconciliacion, liability, multi-moneda en transacciones)
   file: "bmad-output/stories/4.4.auditoria-cobertura-tools-mcp.story.md"
   parallel_set: 11   # bmad-sprint-planning: computado en wave 10 (max(4.1=8,4.2=9)+1), subido a 11 para evitar colision de owned_scope con 4.3 (mcp/README.md) en la misma wave -- sin costo aguas abajo, ya que 5.1=11 domina igual
   dependencies:
@@ -409,7 +409,7 @@ stories:
 - id: "5.6.transacciones-avanzadas-nl"
   title: "Transacciones avanzadas (ingreso, transferencia, split, reconciliación) vía lenguaje natural"
   epic_id: "epic-5"
-  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  status: ready-for-dev   # desbloqueada 2026-09-13: sus 3 dependencias (5.1, 4.3, 4.4) ya estan done
   file: "bmad-output/stories/5.6.transacciones-avanzadas-nl.story.md"
   parallel_set: 12   # comparte src/gemini/promptBuilder.ts con 5.2/5.7-5.12 en la misma wave -- coordinar/serializar manualmente si se despacha junto con esas (ver handoff_notes)
   dependencies:
@@ -421,7 +421,7 @@ stories:
 - id: "5.7.cuentas-pasivos-nl"
   title: "Cuentas de activo y pasivos/deudas vía lenguaje natural"
   epic_id: "epic-5"
-  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  status: ready-for-dev   # desbloqueada 2026-09-13: sus 3 dependencias (5.1, 4.3, 4.4) ya estan done
   file: "bmad-output/stories/5.7.cuentas-pasivos-nl.story.md"
   parallel_set: 12   # comparte src/gemini/promptBuilder.ts con 5.2/5.6/5.8-5.12 -- ver handoff_notes
   dependencies:
@@ -433,7 +433,7 @@ stories:
 - id: "5.8.organizacion-nl"
   title: "Categorías, tags y grupos de objetos vía lenguaje natural"
   epic_id: "epic-5"
-  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  status: ready-for-dev   # desbloqueada 2026-09-13: sus 3 dependencias (5.1, 4.3, 4.4) ya estan done
   file: "bmad-output/stories/5.8.organizacion-nl.story.md"
   parallel_set: 12   # comparte src/gemini/promptBuilder.ts con 5.2/5.6-5.7/5.9-5.12 -- ver handoff_notes
   dependencies:
@@ -445,7 +445,7 @@ stories:
 - id: "5.9.presupuestos-ahorro-nl"
   title: "Presupuestos, auto-budget y piggy banks vía lenguaje natural"
   epic_id: "epic-5"
-  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  status: ready-for-dev   # desbloqueada 2026-09-13: sus 3 dependencias (5.1, 4.3, 4.4) ya estan done
   file: "bmad-output/stories/5.9.presupuestos-ahorro-nl.story.md"
   parallel_set: 12   # comparte src/gemini/promptBuilder.ts con 5.2/5.6-5.8/5.10-5.12 -- ver handoff_notes
   dependencies:
@@ -457,7 +457,7 @@ stories:
 - id: "5.10.automatizacion-nl"
   title: "Bills/suscripciones, transacciones recurrentes y reglas vía lenguaje natural"
   epic_id: "epic-5"
-  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  status: ready-for-dev   # desbloqueada 2026-09-13: sus 3 dependencias (5.1, 4.3, 4.4) ya estan done
   file: "bmad-output/stories/5.10.automatizacion-nl.story.md"
   parallel_set: 12   # comparte src/gemini/promptBuilder.ts con 5.2/5.6-5.9/5.11-5.12 -- ver handoff_notes
   dependencies:
@@ -469,7 +469,7 @@ stories:
 - id: "5.11.multi-moneda-nl"
   title: "Cuentas y transacciones en distinta moneda vía lenguaje natural"
   epic_id: "epic-5"
-  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  status: ready-for-dev   # desbloqueada 2026-09-13: sus 2 dependencias (5.1, 4.4) ya estan done
   file: "bmad-output/stories/5.11.multi-moneda-nl.story.md"
   parallel_set: 12   # comparte src/gemini/promptBuilder.ts con 5.2/5.6-5.10/5.12 -- ver handoff_notes
   dependencies:
@@ -480,7 +480,7 @@ stories:
 - id: "5.12.reportes-insights-nl"
   title: "Reportes, búsqueda e insights de gasto vía lenguaje natural"
   epic_id: "epic-5"
-  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  status: ready-for-dev   # desbloqueada 2026-09-13: sus 2 dependencias (5.1, 4.4) ya estan done
   file: "bmad-output/stories/5.12.reportes-insights-nl.story.md"
   parallel_set: 12   # comparte src/gemini/promptBuilder.ts con 5.2/5.6-5.11 -- ver handoff_notes
   dependencies:
@@ -738,11 +738,17 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 8
+    count: 14
     story_ids:
     - "0.4.backups-automaticos"
-    - "4.4.auditoria-cobertura-tools-mcp"
     - "5.3.consulta-gasto-nl"
+    - "5.6.transacciones-avanzadas-nl"
+    - "5.7.cuentas-pasivos-nl"
+    - "5.8.organizacion-nl"
+    - "5.9.presupuestos-ahorro-nl"
+    - "5.10.automatizacion-nl"
+    - "5.11.multi-moneda-nl"
+    - "5.12.reportes-insights-nl"
     - "6.1.webhook-dedup-update-id"
     - "7.1.waterfly-conexion-pat"
     - "8.3.rotacion-secretos"
@@ -837,4 +843,15 @@ sequencing_summary:
     \ archivo es de 5.4, fuera del Owned Scope de 5.2) -- Gemini sigue componiendo la respuesta\
     \ final, igual que en 5.1. Consecuencia de dependencias: 5.3 (consulta-gasto-nl, unica\
     \ dependencia 5.2) queda desbloqueada y pasa a ready-for-dev. ready_for_dev actualizado: 0.4,\
-    \ 4.4, 5.3, 6.1, 7.1, 8.3, 8.4, 8.5."
+    \ 4.4, 5.3, 6.1, 7.1, 8.3, 8.4, 8.5.\n\n2026-09-13T14:00:00Z -- 4.4 (auditoria-cobertura-tools-mcp)\
+    \ cerrada: mcp/cobertura-firefly.md clasifica las 140 tools contra los 7 grupos funcionales --\
+    \ 4 cubiertos sin gaps (organizacion, presupuestos, automatizacion, reportes/insights), 3\
+    \ cubiertos parcialmente (transacciones avanzadas: reconciliacion no cubierta; cuentas/pasivos:\
+    \ liability no cubierto; multi-moneda: transacciones en moneda distinta no cubierto), los tres\
+    \ requieren extender el MCP, verificado con invocaciones reales contra la instancia de desarrollo\
+    \ (no solo schemas). Epic 4 completo, pasa a done. Consecuencia de dependencias: las 7 historias\
+    \ de cobertura completa de Epic 5 (5.6-5.12) quedan TODAS desbloqueadas simultaneamente (su unica\
+    \ dependencia pendiente era 4.4) y pasan a ready-for-dev -- comparten src/gemini/promptBuilder.ts\
+    \ en la misma wave (parallel_set 12) junto con 5.2 (ya done), coordinar/serializar si se despachan\
+    \ juntas. ready_for_dev actualizado: 0.4, 5.3, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11, 5.12, 6.1, 7.1, 8.3,\
+    \ 8.4, 8.5 (14)."

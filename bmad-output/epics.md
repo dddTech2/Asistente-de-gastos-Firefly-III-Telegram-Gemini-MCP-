@@ -159,7 +159,7 @@ comandos rígidos, antes de meter la capa de IA.
 | 4.1 | mcp-multitenant-deploy | Desplegar el MCP de Firefly III en modo multi-tenant | done — verificado en producción (daften/fireflyiii-mcp; primer candidato evaluado fue descartado por no soportar credenciales por-request) |
 | 4.2 | mcp-inspector-test | Probar el MCP de forma aislada con MCP Inspector | done — verificado en producción (140 tools catalogadas, aislamiento confirmado vía MCP Inspector CLI) |
 | 4.3 | mcp-tools-restringidas | Confirmación explícita para acciones irreversibles del MCP (re-scope 2026-09-13, ver nota) | done — clasificación (toolClassification.ts) + confirmación por chat (confirmacionAccionIrreversible.ts), 19 tests |
-| 4.4 | auditoria-cobertura-tools-mcp | Auditar qué funciones de Firefly III cubre el MCP "de fábrica" vs. qué falta exponer a mano | ready-for-dev |
+| 4.4 | auditoria-cobertura-tools-mcp | Auditar qué funciones de Firefly III cubre el MCP "de fábrica" vs. qué falta exponer a mano | done — mcp/cobertura-firefly.md: 4/7 grupos cubiertos, 3 parciales (reconciliación, liability, multi-moneda) |
 
 **Cross-epic dependencies:**
 - Blocked by: Epic 1 (necesita el mecanismo de PAT por-request), Epic 3 (valida conectividad a Firefly primero).
@@ -195,13 +195,13 @@ natural, sin comandos rígidos.
 | 5.3 | consulta-gasto-nl | "¿Cuánto llevo gastado en comida este mes?" responde correctamente | ready-for-dev |
 | 5.4 | aclaracion-dato-invalido | Pedir aclaración cuando el dato es inválido, en vez de fallar en seco | ready-for-dev |
 | 5.5 | memoria-conversacion-corta | Recordar contexto de los últimos mensajes | ready-for-dev |
-| 5.6 | transacciones-avanzadas-nl | Ingreso, transferencia, split y reconciliación vía lenguaje natural | backlog `# COURSE-CORRECTION 2026-09-13` |
-| 5.7 | cuentas-pasivos-nl | Crear/consultar cuentas de activo y pasivos/deudas vía lenguaje natural | backlog `# COURSE-CORRECTION 2026-09-13` |
-| 5.8 | organizacion-nl | Categorías, tags y grupos de objetos vía lenguaje natural | backlog `# COURSE-CORRECTION 2026-09-13` |
-| 5.9 | presupuestos-ahorro-nl | Presupuestos, auto-budget y piggy banks vía lenguaje natural | backlog `# COURSE-CORRECTION 2026-09-13` |
-| 5.10 | automatizacion-nl | Bills/suscripciones, transacciones recurrentes y reglas vía lenguaje natural | backlog `# COURSE-CORRECTION 2026-09-13` |
-| 5.11 | multi-moneda-nl | Cuentas/transacciones en distinta moneda vía lenguaje natural | backlog `# COURSE-CORRECTION 2026-09-13` |
-| 5.12 | reportes-insights-nl | Reportes, búsqueda e insights de gasto vía lenguaje natural | backlog `# COURSE-CORRECTION 2026-09-13` |
+| 5.6 | transacciones-avanzadas-nl | Ingreso, transferencia, split y reconciliación vía lenguaje natural | ready-for-dev (desbloqueada 2026-09-13 al cerrar 4.4) |
+| 5.7 | cuentas-pasivos-nl | Crear/consultar cuentas de activo y pasivos/deudas vía lenguaje natural | ready-for-dev (desbloqueada 2026-09-13 al cerrar 4.4) |
+| 5.8 | organizacion-nl | Categorías, tags y grupos de objetos vía lenguaje natural | ready-for-dev (desbloqueada 2026-09-13 al cerrar 4.4) |
+| 5.9 | presupuestos-ahorro-nl | Presupuestos, auto-budget y piggy banks vía lenguaje natural | ready-for-dev (desbloqueada 2026-09-13 al cerrar 4.4) |
+| 5.10 | automatizacion-nl | Bills/suscripciones, transacciones recurrentes y reglas vía lenguaje natural | ready-for-dev (desbloqueada 2026-09-13 al cerrar 4.4) |
+| 5.11 | multi-moneda-nl | Cuentas/transacciones en distinta moneda vía lenguaje natural | ready-for-dev (desbloqueada 2026-09-13 al cerrar 4.4) |
+| 5.12 | reportes-insights-nl | Reportes, búsqueda e insights de gasto vía lenguaje natural | ready-for-dev (desbloqueada 2026-09-13 al cerrar 4.4) |
 
 **Cross-epic dependencies:**
 - Blocked by: Epic 4 (5.6-5.12 dependen además de 4.4, el spike de cobertura de tools).
