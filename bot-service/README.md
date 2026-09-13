@@ -79,6 +79,14 @@ arranca (ver sección de whitelist más abajo).
 > avisar que hay una versión más nueva disponible (así se detectó recién en
 > el ciclo de despliegue de la historia 3.1).
 
+> **Un commit local no le sirve de nada a la VPS si no se pushea.** `git pull`
+> en la VPS solo trae lo que ya está en `origin/master` — un commit hecho y
+> nunca pusheado deja el `git pull` sin nada nuevo que traer, y el síntoma se
+> confunde fácilmente con el problema de arriba (falta de `npm run build`).
+> Verificar con `git status --porcelain=v1 -b` (buscar `ahead N`) antes de
+> asumir que el deploy debería tener el cambio (detectado en el ciclo de
+> despliegue de la historia 3.2).
+
 ```bash
 cd /opt/Asistente-de-gastos-Firefly-III-Telegram-Gemini-MCP-/bot-service
 git pull

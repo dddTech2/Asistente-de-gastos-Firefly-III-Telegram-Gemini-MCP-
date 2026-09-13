@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-13T05:00:00Z"
+last_updated: "2026-09-13T06:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -44,7 +44,7 @@ epics:
 - id: "epic-3"
   title: "Integración directa con Firefly III (sin IA todavía)"
   description: ""
-  status: backlog
+  status: done
   story_ids:
   - "3.1.comando-gasto-manual"
   - "3.2.comando-resumen-mensual"
@@ -281,7 +281,7 @@ stories:
 - id: "3.2.comando-resumen-mensual"
   title: "Comando de resumen mensual de transacciones"
   epic_id: "epic-3"
-  status: in-progress
+  status: done
   file: "bmad-output/stories/3.2.comando-resumen-mensual.story.md"
   parallel_set: 7
   dependencies:
@@ -293,7 +293,7 @@ stories:
 - id: "4.1.mcp-multitenant-deploy"
   title: "Desplegar el MCP de Firefly III en modo multi-tenant"
   epic_id: "epic-4"
-  status: backlog
+  status: ready-for-dev
   file: "bmad-output/stories/4.1.mcp-multitenant-deploy.story.md"
   parallel_set: 8
   dependencies:
@@ -737,9 +737,10 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 6
+    count: 7
     story_ids:
     - "0.4.backups-automaticos"
+    - "4.1.mcp-multitenant-deploy"
     - "6.1.webhook-dedup-update-id"
     - "7.1.waterfly-conexion-pat"
     - "8.3.rotacion-secretos"
@@ -769,4 +770,10 @@ sequencing_summary:
     \ done). 3.1 (comando-gasto-manual) done: verificado en produccion. Bache de despliegue\
     \ documentado en el README: pm2 corre dist/index.js compilado, requiere 'npm run build' antes\
     \ de 'pm2 restart'. Nota operativa (de 1.1): la VPS no tiene psql en el host, hay que usar\
-    \ 'docker exec bot-postgres psql' (documentado en bot-service/README.md)."
+    \ 'docker exec bot-postgres psql' (documentado en bot-service/README.md).\n\
+    \ ACTUALIZACION 2026-09-13T06:00:00Z: 3.2 (comando-resumen-mensual) cerrada\
+    \ done, verificada en produccion. Epic 3 completo (3.1 y 3.2 done). Consecuencia\
+    \ de dependencias: 4.1 (mcp-multitenant-deploy) queda desbloqueada (sus 4\
+    \ dependencias -- 0.1, 1.4, 1.5, 3.2 -- ya estan done) y pasa a ready-for-dev.\
+    \ ready_for_dev actualizado: 0.4, 4.1, 6.1, 7.1, 8.3, 8.4, 8.5 (3.2 removida\
+    \ por estar done, 4.1 agregada)."
