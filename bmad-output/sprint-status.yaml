@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-13T15:00:00Z"
+last_updated: "2026-09-13T15:30:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -383,7 +383,7 @@ stories:
 - id: "5.4.aclaracion-dato-invalido"
   title: "Pedir aclaración cuando el dato es inválido, en vez de fallar en seco"
   epic_id: "epic-5"
-  status: backlog
+  status: ready-for-dev   # desbloqueada 2026-09-13: su unica dependencia (5.3) ya esta done -- correccion de un error de cierre (ver handoff_notes)
   file: "bmad-output/stories/5.4.aclaracion-dato-invalido.story.md"
   parallel_set: 14
   dependencies:
@@ -738,9 +738,10 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 13
+    count: 14
     story_ids:
     - "0.4.backups-automaticos"
+    - "5.4.aclaracion-dato-invalido"
     - "5.6.transacciones-avanzadas-nl"
     - "5.7.cuentas-pasivos-nl"
     - "5.8.organizacion-nl"
@@ -867,4 +868,16 @@ sequencing_summary:
     \ no verificados de este proyecto. Consecuencia de dependencias: ninguna historia de Epica 5\
     \ dependia exclusivamente de 5.3 (documentado en su propio Dependency Maps), no se desbloquea\
     \ nada nuevo. ready_for_dev actualizado: 0.4, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11, 5.12, 6.1, 7.1,\
-    \ 8.3, 8.4, 8.5 (13)."
+    \ 8.3, 8.4, 8.5 (13).\n\n2026-09-13T15:30:00Z -- CORRECCION de un error del cierre anterior:\
+    \ al cerrar 5.3 se afirmo que ninguna historia quedaba desbloqueada, citando el texto\
+    \ narrativo de la propia historia 5.3 (\"Blocks: ninguna historia de la Epica 5 depende\
+    \ exclusivamente de 5.3\") sin cruzarlo contra el grafo real de dependencias de este archivo\
+    \ -- que si marca a 5.4 (aclaracion-dato-invalido) dependiendo unicamente de 5.3. Es una\
+    \ inconsistencia entre el texto narrativo de la historia 5.3 y el grafo real (no se resolvio\
+    \ cual de los dos es el error de origen, queda pendiente para una revision de planning).\
+    \ 5.4 pasa a ready-for-dev. Es ademas la historia que cablea messageOrchestrator.ts al\
+    \ webhook real de Telegram (hoy el bot solo responde /gasto, /resumen, o un eco literal\
+    \ para cualquier otro texto -- todo el pipeline de Gemini de 5.1/5.2/5.3 esta construido y\
+    \ testeado pero nunca conectado al flujo real, por diseño deliberado documentado desde el\
+    \ cierre de 5.1). ready_for_dev actualizado: 0.4, 5.4, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11, 5.12,\
+    \ 6.1, 7.1, 8.3, 8.4, 8.5 (14)."
