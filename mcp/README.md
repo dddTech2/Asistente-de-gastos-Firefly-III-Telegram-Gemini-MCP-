@@ -160,3 +160,25 @@ en el prompt de un modelo:
   tool-calling — eso lo cablea Epic 5 (integración con Gemini), que debe invocar
   `clasificarToolCall` antes de ejecutar cualquier tool y, si el resultado es
   `"irreversible"`, pasar por `solicitarConfirmacion` en vez de ejecutar directo.
+
+## Cliente MCP del Bot Service (historia 5.1)
+
+`bot-service/src/mcp/mcpToolExecutor.ts` es el primer código que llama de verdad al MCP
+usando el SDK oficial (`@modelcontextprotocol/sdk`, cliente `StreamableHTTPClientTransport`
++ `Client`), no solo herramientas externas (Inspector/curl) como en 4.1/4.2:
+
+- Conexión nueva por llamada (`listarTools`/`ejecutarTool`), nunca reutilizada entre
+  requests — mismo criterio "sin estado compartido" que `credential-resolver.ts` (1.5): el
+  PAT viaja solo en el header `Authorization` de esa conexión puntual.
+- `client.callTool(...)` con `isError: true` (ej. `tool_not_found`) se traduce a
+  `{ esError: true }` sin lanzar excepción — el error vuelve como `functionResponse` a
+  Gemini para que responda en lenguaje natural, no corta el flujo.
+- `bot-service/src/handlers/messageOrchestrator.ts` (Épica 5, historia 5.1) es quien arma
+  el prompt (system + historial + tools traducidas por `toolDeclarationsAdapter.ts`), llama
+  a Gemini, y si hay `functionCall` ejecuta la tool vía este executor y reenvía el
+  resultado — **todavía sin invocar `clasificarToolCall`/`solicitarConfirmacion`**: ningún
+  AC ni escenario de Testing de 5.1 lo pide, así que la confirmación antes de una tool
+  irreversible sigue pendiente de cablearse en una historia posterior (candidata natural:
+  5.4, que ya trata rutas de tool-call inválida/ambigua). Hasta que eso pase, Gemini puede
+  en teoría pedir cualquiera de las 140 tools, incluidas las destructivas, sin pasar por
+  confirmación — aceptado como alcance explícito de esta historia, no un descuido.

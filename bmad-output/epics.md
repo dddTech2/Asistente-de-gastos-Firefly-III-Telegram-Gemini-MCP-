@@ -190,7 +190,7 @@ natural, sin comandos rígidos.
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 5.1 | prompt-tools-gemini | Armar prompt con historial + tools del MCP y llamar a Gemini | ready-for-dev (desbloqueada 2026-09-13 al cerrar 4.3) |
+| 5.1 | prompt-tools-gemini | Armar prompt con historial + tools del MCP y llamar a Gemini | done — geminiClient/promptBuilder/toolDeclarationsAdapter/mcpToolExecutor/historyStore/messageOrchestrator, 33 tests |
 | 5.2 | registro-gasto-nl | "Gasté 20 mil en almuerzo" crea la transacción correcta | ready-for-dev |
 | 5.3 | consulta-gasto-nl | "¿Cuánto llevo gastado en comida este mes?" responde correctamente | ready-for-dev |
 | 5.4 | aclaracion-dato-invalido | Pedir aclaración cuando el dato es inválido, en vez de fallar en seco | ready-for-dev |

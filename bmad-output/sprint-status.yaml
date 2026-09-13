@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-13T11:00:00Z"
+last_updated: "2026-09-13T12:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -343,7 +343,7 @@ stories:
 - id: "5.1.prompt-tools-gemini"
   title: "Armar prompt con historial + tools del MCP y llamar a Gemini"
   epic_id: "epic-5"
-  status: ready-for-dev   # desbloqueada 2026-09-13: su unica dependencia (4.3) ya esta done
+  status: done   # cerrada 2026-09-13: geminiClient/promptBuilder/toolDeclarationsAdapter/mcpToolExecutor/historyStore/messageOrchestrator, 33 tests
   file: "bmad-output/stories/5.1.prompt-tools-gemini.story.md"
   parallel_set: 11
   dependencies:
@@ -358,7 +358,7 @@ stories:
 - id: "5.2.registro-gasto-nl"
   title: "\"Gasté 20 mil en almuerzo\" crea la transacción correcta"
   epic_id: "epic-5"
-  status: backlog
+  status: ready-for-dev   # desbloqueada 2026-09-13: su unica dependencia (5.1) ya esta done
   file: "bmad-output/stories/5.2.registro-gasto-nl.story.md"
   parallel_set: 12
   dependencies:
@@ -742,7 +742,7 @@ sequencing_summary:
     story_ids:
     - "0.4.backups-automaticos"
     - "4.4.auditoria-cobertura-tools-mcp"
-    - "5.1.prompt-tools-gemini"
+    - "5.2.registro-gasto-nl"
     - "6.1.webhook-dedup-update-id"
     - "7.1.waterfly-conexion-pat"
     - "8.3.rotacion-secretos"
@@ -824,4 +824,10 @@ sequencing_summary:
     \ 4.3) queda desbloqueada y pasa a ready-for-dev -- primera historia de\
     \ Epic 5 (integracion con Gemini) alcanzable. Epic 5 pasa a in-progress.\
     \ Epic 4 sigue in-progress (falta 4.4). ready_for_dev actualizado: 0.4, 4.4,\
-    \ 5.1, 6.1, 7.1, 8.3, 8.4, 8.5."
+    \ 5.1, 6.1, 7.1, 8.3, 8.4, 8.5.\n\n2026-09-13T12:00:00Z -- 5.1 (prompt-tools-gemini)\
+    \ cerrada: geminiClient/promptBuilder/toolDeclarationsAdapter/mcpToolExecutor/historyStore/messageOrchestrator,\
+    \ 33 tests nuevos. Ejecuta tool calls sin pasar todavia por clasificarToolCall/solicitarConfirmacion\
+    \ (4.3) -- ningun AC/Testing de 5.1 lo pedia; queda documentado en mcp/README.md como pendiente\
+    \ explicito para una historia posterior (candidata: 5.4). Consecuencia de dependencias: 5.2\
+    \ (registro-gasto-nl, unica dependencia 5.1) queda desbloqueada y pasa a ready-for-dev. 5.6-5.12\
+    \ siguen bloqueadas por 4.4. ready_for_dev actualizado: 0.4, 4.4, 5.2, 6.1, 7.1, 8.3, 8.4, 8.5."
