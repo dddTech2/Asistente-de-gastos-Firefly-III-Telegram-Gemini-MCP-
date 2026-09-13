@@ -193,3 +193,17 @@ soporta, verificado con invocaciones reales que Firefly rechaza por falta de eso
 el `inputSchema`). Detalle completo, con las recomendaciones por gap, en
 [`cobertura-firefly.md`](./cobertura-firefly.md) — es el insumo directo de 5.6-5.12, no
 repetir esta exploración ahí.
+
+## Consulta de gasto en lenguaje natural (historia 5.3) — gap de schema no verificado
+
+5.3 (consulta-gasto-nl) usa `get_categories`, `get_category_transactions` y `get_transactions`
+para responder preguntas como "¿cuánto gasté en comida este mes?". A diferencia de
+`create_transaction`/`create_split_transaction`/`create_account` (schemas extraídos en detalle
+en 4.4), estas tres tools de lectura **no tuvieron su `inputSchema` completo verificado en vivo**
+— no estaban en la lista de tools con ambigüedad de cobertura de 4.4. Los nombres de parámetro
+usados en los tests de 5.3 (`category_id`, `start`, `end`) son una inferencia razonable del
+patrón REST de Firefly, no un hecho confirmado con MCP Inspector. En producción esto no rompe
+nada porque Gemini recibe el `inputSchema` real vía `toolDeclarationsAdapter`, no lo que dice el
+prompt — pero si una futura sesión de verificación (mismo método de 4.2/4.4) encuentra nombres de
+campo distintos, solo hay que actualizar los ejemplos del prompt (`consultaGasto.prompt.ts`), no
+la arquitectura.

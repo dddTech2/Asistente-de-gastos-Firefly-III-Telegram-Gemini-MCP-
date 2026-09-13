@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-13T14:00:00Z"
+last_updated: "2026-09-13T15:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -370,7 +370,7 @@ stories:
 - id: "5.3.consulta-gasto-nl"
   title: "\"¿Cuánto llevo gastado en comida este mes?\" responde correctamente"
   epic_id: "epic-5"
-  status: ready-for-dev   # desbloqueada 2026-09-13: su unica dependencia (5.2) ya esta done
+  status: done   # cerrada 2026-09-13: consultaGasto.prompt.ts + dateRangeResolver.ts + promptBuilder.ts (import) + responseFormatter.ts, 25 tests
   file: "bmad-output/stories/5.3.consulta-gasto-nl.story.md"
   parallel_set: 13
   dependencies:
@@ -738,10 +738,9 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 14
+    count: 13
     story_ids:
     - "0.4.backups-automaticos"
-    - "5.3.consulta-gasto-nl"
     - "5.6.transacciones-avanzadas-nl"
     - "5.7.cuentas-pasivos-nl"
     - "5.8.organizacion-nl"
@@ -854,4 +853,18 @@ sequencing_summary:
     \ dependencia pendiente era 4.4) y pasan a ready-for-dev -- comparten src/gemini/promptBuilder.ts\
     \ en la misma wave (parallel_set 12) junto con 5.2 (ya done), coordinar/serializar si se despachan\
     \ juntas. ready_for_dev actualizado: 0.4, 5.3, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11, 5.12, 6.1, 7.1, 8.3,\
-    \ 8.4, 8.5 (14)."
+    \ 8.4, 8.5 (14).\n\n2026-09-13T15:00:00Z -- 5.3 (consulta-gasto-nl) cerrada: consultaGasto.prompt.ts\
+    \ (fragmento de prompt con guia de que tool de lectura usar segun si la pregunta menciona\
+    \ categoria) + dateRangeResolver.ts (algoritmo puro y testeado de traduccion de expresiones\
+    \ relativas -- hoy/ayer/esta semana/la semana pasada/este mes/este ano -- a rango de fechas\
+    \ concreto, documentado en prosa en el prompt para que Gemini lo reproduzca; no esta enganchado\
+    \ en messageOrchestrator.ts, mismo patron de modulo standalone que 4.3/5.2) + import en\
+    \ promptBuilder.ts + responseFormatter.ts (formatearResumenConsulta, tambien standalone), 25\
+    \ tests nuevos. Los nombres de parametros usados en los fixtures de test para get_categories/\
+    \ get_category_transactions/get_transactions (category_id, start, end) son una inferencia\
+    \ razonable, no verificada contra el schema real (4.4 no los cubrio en detalle) -- documentado\
+    \ en el Dev Agent Record de la historia como gap conocido, mismo criterio que otros supuestos\
+    \ no verificados de este proyecto. Consecuencia de dependencias: ninguna historia de Epica 5\
+    \ dependia exclusivamente de 5.3 (documentado en su propio Dependency Maps), no se desbloquea\
+    \ nada nuevo. ready_for_dev actualizado: 0.4, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11, 5.12, 6.1, 7.1,\
+    \ 8.3, 8.4, 8.5 (13)."

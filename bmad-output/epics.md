@@ -192,7 +192,7 @@ natural, sin comandos rígidos.
 |------|------|--------|--------|
 | 5.1 | prompt-tools-gemini | Armar prompt con historial + tools del MCP y llamar a Gemini | done — geminiClient/promptBuilder/toolDeclarationsAdapter/mcpToolExecutor/historyStore/messageOrchestrator, 33 tests |
 | 5.2 | registro-gasto-nl | "Gasté 20 mil en almuerzo" crea la transacción correcta | done — registroGasto.prompt.ts + responseFormatter.ts, 18 tests |
-| 5.3 | consulta-gasto-nl | "¿Cuánto llevo gastado en comida este mes?" responde correctamente | ready-for-dev |
+| 5.3 | consulta-gasto-nl | "¿Cuánto llevo gastado en comida este mes?" responde correctamente | done — consultaGasto.prompt.ts + dateRangeResolver.ts + responseFormatter.ts, 25 tests |
 | 5.4 | aclaracion-dato-invalido | Pedir aclaración cuando el dato es inválido, en vez de fallar en seco | ready-for-dev |
 | 5.5 | memoria-conversacion-corta | Recordar contexto de los últimos mensajes | ready-for-dev |
 | 5.6 | transacciones-avanzadas-nl | Ingreso, transferencia, split y reconciliación vía lenguaje natural | ready-for-dev (desbloqueada 2026-09-13 al cerrar 4.4) |

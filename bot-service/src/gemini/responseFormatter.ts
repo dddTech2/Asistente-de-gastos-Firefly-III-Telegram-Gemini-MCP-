@@ -48,6 +48,7 @@ function formatearFecha(fechaIso: string): string | undefined {
 }
 
 const MENSAJE_CONFIRMACION_GENERICO = "✅ Gasto registrado.";
+const MENSAJE_SIN_RESULTADOS = "No encontré gastos registrados para esa consulta.";
 
 /**
  * AC #4 (historia 5.2): a partir del resultado crudo (JSON de Firefly III,
@@ -90,4 +91,53 @@ export function formatearConfirmacionGasto(contenidoTool: string): string {
   }
 
   return `${partes.join(" ")}.`;
+}
+
+/** Firefly agrupa transacciones en `data[].attributes.transactions[]` (misma forma confirmada en 4.2 para `create_transaction`) tanto en `get_transactions` como en `get_category_transactions`. */
+function extraerTransacciones(contenidoTool: string): TransaccionFireflyCruda[] {
+  try {
+    const parseado = JSON.parse(contenidoTool) as {
+      data?: Array<{ attributes?: { transactions?: TransaccionFireflyCruda[] } }>;
+    };
+    return (parseado.data ?? []).flatMap((grupo) => grupo.attributes?.transactions ?? []);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * AC #3, #4 (historia 5.3): a partir del resultado crudo de una tool de
+ * consulta (`get_transactions`/`get_category_transactions`), suma los montos
+ * por moneda y arma un resumen en lenguaje natural -- nunca el JSON crudo. Si
+ * no hay transacciones (o ninguna tiene un monto numérico válido), devuelve
+ * un mensaje claro de "no hay gasto registrado" (AC #4), nunca un error.
+ *
+ * Standalone y probado, todavía sin invocar desde `messageOrchestrator.ts`
+ * (mismo gap documentado que `formatearConfirmacionGasto` en 5.2): hoy Gemini
+ * compone la respuesta final a partir del `functionResponse` crudo, este
+ * formateador queda disponible para cuando una historia futura quiera una
+ * respuesta determinística en vez de (o además de) la de Gemini.
+ */
+export function formatearResumenConsulta(contenidoTool: string): string {
+  const transacciones = extraerTransacciones(contenidoTool);
+
+  const totalesPorMoneda = new Map<string, number>();
+  for (const transaccion of transacciones) {
+    const monto = Number(transaccion.amount);
+    if (!Number.isFinite(monto)) {
+      continue;
+    }
+    const moneda = transaccion.currency_code ?? "";
+    totalesPorMoneda.set(moneda, (totalesPorMoneda.get(moneda) ?? 0) + monto);
+  }
+
+  if (totalesPorMoneda.size === 0) {
+    return MENSAJE_SIN_RESULTADOS;
+  }
+
+  const partes = [...totalesPorMoneda.entries()].map(([moneda, total]) =>
+    formatearMonto(String(total), moneda || undefined),
+  );
+
+  return `💰 Gastaste ${partes.join(" + ")} en el período consultado.`;
 }

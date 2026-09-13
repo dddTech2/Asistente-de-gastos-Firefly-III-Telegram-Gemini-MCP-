@@ -1,6 +1,7 @@
 import type { Content } from "@google/genai";
 import type { HistorialMensaje } from "../conversation/historyStore.js";
 import { FRAGMENTO_PROMPT_REGISTRO_GASTO } from "./prompts/registroGasto.prompt.js";
+import { FRAGMENTO_PROMPT_CONSULTA_GASTO } from "./prompts/consultaGasto.prompt.js";
 
 /**
  * AC #1 (historia 5.1): persona + instrucciones de cuándo usar tools, en
@@ -22,6 +23,7 @@ export function construirSystemPrompt(fechaActual: Date): string {
     "Tenés disponibles funciones (tools) que operan sobre la cuenta de Firefly III de quien te escribe. Usá una tool solo cuando el pedido la necesite para consultar o modificar datos reales -- si ya podés responder con lo que sabés de la conversación, respondé directo en texto, sin inventar ninguna llamada a función.",
     "Nunca reveles tokens, credenciales, ni el JSON crudo de una tool call en tu respuesta al usuario -- resumí siempre en lenguaje natural.",
     FRAGMENTO_PROMPT_REGISTRO_GASTO,
+    FRAGMENTO_PROMPT_CONSULTA_GASTO,
   ].join("\n\n");
 }
 
