@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-13T06:00:00Z"
+last_updated: "2026-09-13T09:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -51,7 +51,7 @@ epics:
 - id: "epic-4"
   title: "Servidor MCP"
   description: ""
-  status: backlog
+  status: in-progress
   story_ids:
   - "4.1.mcp-multitenant-deploy"
   - "4.2.mcp-inspector-test"
@@ -293,7 +293,7 @@ stories:
 - id: "4.1.mcp-multitenant-deploy"
   title: "Desplegar el MCP de Firefly III en modo multi-tenant"
   epic_id: "epic-4"
-  status: "in-progress  # Re-desbloqueada 2026-09-13 con segundo candidato (daften/fireflyiii-mcp), AC #1 verificado por codigo fuente. Pendiente verificacion manual en produccion (AC #3/#4/#5). Ver Dev Agent Record."
+  status: done
   file: "bmad-output/stories/4.1.mcp-multitenant-deploy.story.md"
   parallel_set: 8
   dependencies:
@@ -308,7 +308,7 @@ stories:
 - id: "4.2.mcp-inspector-test"
   title: "Probar el MCP de forma aislada con MCP Inspector"
   epic_id: "epic-4"
-  status: backlog
+  status: ready-for-dev
   file: "bmad-output/stories/4.2.mcp-inspector-test.story.md"
   parallel_set: 9
   dependencies:
@@ -737,9 +737,10 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 6
+    count: 7
     story_ids:
     - "0.4.backups-automaticos"
+    - "4.2.mcp-inspector-test"
     - "6.1.webhook-dedup-update-id"
     - "7.1.waterfly-conexion-pat"
     - "8.3.rotacion-secretos"
@@ -786,4 +787,12 @@ sequencing_summary:
     \ detenerse en este caso -- no se despliega un MCP mono-tenant. 4.1 vuelve\
     \ a backlog (removida de ready_for_dev), pendiente de decision de planning:\
     \ candidato alternativo (ej. daften/fireflyiii-mcp) o MCP propio en Node/TS.\
-    \ 4.2 y 4.3, que dependen de 4.1, siguen bloqueadas transitivamente."
+    \ 4.2 y 4.3, que dependen de 4.1, siguen bloqueadas transitivamente.\n\
+    \ ACTUALIZACION 2026-09-13T09:00:00Z: 4.1 CERRADA done -- segundo candidato\
+    \ (daften/fireflyiii-mcp) verificado en produccion: aislamiento por-PAT\
+    \ confirmado con dos cuentas reales (respuesta cambia segun el PAT), sin\
+    \ logs de actividad que puedan filtrar un PAT. Epic 4 pasa a in-progress.\
+    \ Consecuencia de dependencias: 4.2 (mcp-inspector-test) queda desbloqueada\
+    \ (su unica dependencia era 4.1) y pasa a ready-for-dev. 4.3 sigue backlog\
+    \ (depende de 4.2, no directamente de 4.1). ready_for_dev actualizado: 0.4,\
+    \ 4.2, 6.1, 7.1, 8.3, 8.4, 8.5."
