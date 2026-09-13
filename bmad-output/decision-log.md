@@ -19,6 +19,16 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-12 — Historia 1.4 (PAT cifrado en Postgres) cerrada — verificada en producción
+- **Decision:** el administrador aplicó la migración `0002` y configuró `PAT_ENCRYPTION_KEY` en la
+  VPS, reinició el Bot Service y confirmó que el flujo `crear` → `completar-pat` cifra (AES-256-GCM)
+  y persiste el PAT correctamente contra la instancia real de Firefly III/Postgres.
+- **Housekeeping:** `1.5.pat-por-request-mcp` ya estaba redactada como `ready-for-dev` en su propio
+  archivo (su única dependencia, 1.4, ahora está `done`) — queda como único `ready-for-dev` en
+  `sprint-status.yaml`.
+- **Made by:** dev agent (implementación de 1.4)
+- **Supersedes:** la entrada anterior de 1.4 (implementada, despliegue pendiente) — ahora `done`.
+
 ### 2026-09-12 — Historia 1.4 (PAT cifrado en Postgres): implementada, pendiente de despliegue
 - **Decision:** cifrado AES-256-GCM (`node:crypto` nativo, sin dependencias nuevas) para el PAT en
   reposo. `src/auth/pat-crypto.ts` expone funciones puras `cifrarPat`/`descifrarPat`/
