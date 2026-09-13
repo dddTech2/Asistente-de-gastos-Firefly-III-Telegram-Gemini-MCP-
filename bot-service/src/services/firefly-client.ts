@@ -13,6 +13,12 @@ export interface TransaccionCreada {
   id: string;
 }
 
+export interface TransaccionResumen {
+  fecha: string;
+  monto: string;
+  concepto: string;
+}
+
 export class FireflyClientError extends Error {
   constructor(
     message: string,
@@ -25,10 +31,31 @@ export class FireflyClientError extends Error {
 
 export interface FireflyClient {
   crearTransaccion(input: CrearTransaccionInput): Promise<TransaccionCreada>;
+  listarTransacciones(desde: string, hasta: string): Promise<TransaccionResumen[]>;
 }
 
 interface FireflyTransactionResponse {
   data: { id: string };
+}
+
+// Firefly III agrupa cada transacción (aun las "simples") en un array
+// `attributes.transactions` de uno o más splits -- se aplana a un registro
+// por split, que es lo que consume `formatMensajeResumen` (historia 3.2).
+// [Inference: forma real de la API v1 de Firefly III, no deletreada en la
+// documentación del proyecto -- ver Dev Notes de 3.2]
+interface FireflyTransactionSplit {
+  date: string;
+  amount: string;
+  description: string;
+}
+
+interface FireflyTransactionGroup {
+  attributes: { transactions: FireflyTransactionSplit[] };
+}
+
+interface FireflyTransactionsListResponse {
+  data: FireflyTransactionGroup[];
+  meta: { pagination: { total_pages: number } };
 }
 
 // Un poco por encima de la latencia objetivo del proyecto (<5s, ver Dev Notes
@@ -96,6 +123,61 @@ export function createFireflyClient(config: FireflyClientConfig): FireflyClient 
 
       const body = (await response.json()) as FireflyTransactionResponse;
       return { id: body.data.id };
+    },
+
+    /**
+     * `GET /api/v1/transactions?start=<desde>&end=<hasta>` (AC #1, historia
+     * 3.2), `desde`/`hasta` en formato `YYYY-MM-DD`. Recorre todas las
+     * páginas (`meta.pagination.total_pages`) antes de devolver el resultado
+     * completo -- un mes con volumen alto de transacciones puede no entrar
+     * en una sola página de Firefly III.
+     */
+    async listarTransacciones(desde: string, hasta: string): Promise<TransaccionResumen[]> {
+      const resultados: TransaccionResumen[] = [];
+      let page = 1;
+      let totalPages = 1;
+
+      do {
+        const url = new URL("/api/v1/transactions", config.baseUrl);
+        url.searchParams.set("start", desde);
+        url.searchParams.set("end", hasta);
+        url.searchParams.set("page", String(page));
+
+        let response: Response;
+        try {
+          response = await fetch(url.toString(), {
+            headers: {
+              Authorization: `Bearer ${config.pat}`,
+              Accept: "application/vnd.api+json",
+            },
+            signal: AbortSignal.timeout(TIMEOUT_MS),
+          });
+        } catch (error) {
+          const esTimeout = error instanceof Error && error.name === "TimeoutError";
+          throw new FireflyClientError(
+            esTimeout ? "Firefly III no respondió a tiempo" : "No se pudo conectar con Firefly III",
+          );
+        }
+
+        if (!response.ok) {
+          throw new FireflyClientError(
+            `Firefly III respondió ${response.status} al listar transacciones`,
+            response.status,
+          );
+        }
+
+        const body = (await response.json()) as FireflyTransactionsListResponse;
+        for (const grupo of body.data) {
+          for (const split of grupo.attributes.transactions) {
+            resultados.push({ fecha: split.date, monto: split.amount, concepto: split.description });
+          }
+        }
+
+        totalPages = body.meta.pagination.total_pages;
+        page += 1;
+      } while (page <= totalPages);
+
+      return resultados;
     },
   };
 }

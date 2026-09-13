@@ -281,7 +281,7 @@ stories:
 - id: "3.2.comando-resumen-mensual"
   title: "Comando de resumen mensual de transacciones"
   epic_id: "epic-3"
-  status: ready-for-dev
+  status: in-progress
   file: "bmad-output/stories/3.2.comando-resumen-mensual.story.md"
   parallel_set: 7
   dependencies:
@@ -737,10 +737,9 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 7
+    count: 6
     story_ids:
     - "0.4.backups-automaticos"
-    - "3.2.comando-resumen-mensual"
     - "6.1.webhook-dedup-update-id"
     - "7.1.waterfly-conexion-pat"
     - "8.3.rotacion-secretos"

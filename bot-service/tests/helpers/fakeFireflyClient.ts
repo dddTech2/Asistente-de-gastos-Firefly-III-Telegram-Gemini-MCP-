@@ -10,5 +10,6 @@ import type { FireflyClient } from "../../src/services/firefly-client.js";
 export function createNeverCalledFireflyClient(): FireflyClient {
   return {
     crearTransaccion: vi.fn().mockRejectedValue(new Error("no debería llamarse en este test")),
+    listarTransacciones: vi.fn().mockRejectedValue(new Error("no debería llamarse en este test")),
   };
 }
