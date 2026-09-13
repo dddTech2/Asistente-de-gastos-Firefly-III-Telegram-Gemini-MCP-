@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-13T02:15:00Z"
+last_updated: "2026-09-13T03:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -256,7 +256,7 @@ stories:
 - id: "3.1.comando-gasto-manual"
   title: "Comando /gasto crea una transacción real en Firefly III"
   epic_id: "epic-3"
-  status: in-progress
+  status: done
   file: "bmad-output/stories/3.1.comando-gasto-manual.story.md"
   parallel_set: 6
   dependencies:
@@ -270,7 +270,7 @@ stories:
 - id: "3.2.comando-resumen-mensual"
   title: "Comando de resumen mensual de transacciones"
   epic_id: "epic-3"
-  status: backlog
+  status: ready-for-dev
   file: "bmad-output/stories/3.2.comando-resumen-mensual.story.md"
   parallel_set: 7
   dependencies:
@@ -563,21 +563,23 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 6
+    count: 7
     story_ids:
     - "0.4.backups-automaticos"
+    - "3.2.comando-resumen-mensual"
     - "6.1.webhook-dedup-update-id"
     - "7.1.waterfly-conexion-pat"
     - "8.3.rotacion-secretos"
     - "8.4.alertas-caida-servicio"
     - "8.5.prueba-carga-50-usuarios"
-  handoff_notes: "Epic 1 completo (1.1-1.5 done). 3.1 (comando-gasto-manual) en progreso:\
-    \ implementacion local completa (firefly-client.ts + gasto.ts, registrado en\
-    \ telegramWebhook.ts antes del echo), 103 tests pasando (17 nuevos, 5 skipped por Docker),\
-    \ tsc limpio. Requiere FIREFLY_PAT/FIREFLY_BASE_URL/FIREFLY_SOURCE_ACCOUNT nuevas en el .env\
-    \ del servidor (FIREFLY_SOURCE_ACCOUNT es una desviacion documentada: Firefly exige una cuenta\
-    \ de origen que la historia no habia previsto). Pendiente que el administrador configure esas\
-    \ variables en la VPS y verifique manualmente /gasto contra la instancia real (camino feliz +\
-    \ un caso de error), como exige la DoD del proyecto -- no se puede verificar sin el PAT real,\
-    \ que nunca se comparte en el chat. Nota operativa (de 1.1): la VPS no tiene psql en el host,\
-    \ hay que usar 'docker exec bot-postgres psql' (documentado en bot-service/README.md)."
+  handoff_notes: "Epic 1 completo (1.1-1.5 done). 3.1 (comando-gasto-manual) done: verificado en\
+    \ produccion, '/gasto 20000 almuerzo' crea la transaccion real en Firefly III. Bache de\
+    \ despliegue detectado y documentado en el README: pm2 corre dist/index.js compilado, no el\
+    \ codigo fuente -- todo git pull que toque src/ requiere 'npm run build' antes de 'pm2 restart',\
+    \ si no pm2 sigue corriendo la version vieja en silencio. 3.2 (comando-resumen-mensual) se\
+    \ libera ahora que 3.1 esta done (comparten firefly-client.ts). Usuario esta evaluando si el\
+    \ alcance actual del backlog (Epic 3/5, centrado en gasto/consulta) cubre lo que quiere del bot\
+    \ vs. todo lo que ofrece Firefly (cuentas, deudas, pasivos, suscripciones) -- posible\
+    \ correccion de rumbo (bmad-correct-course) antes de seguir sumando historias si decide ampliar\
+    \ el alcance. Nota operativa (de 1.1): la VPS no tiene psql en el host, hay que usar 'docker\
+    \ exec bot-postgres psql' (documentado en bot-service/README.md)."

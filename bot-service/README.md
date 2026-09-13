@@ -73,6 +73,20 @@ pm2 save
 credenciales/puertos que `infra/.env`) — sin `DATABASE_URL` el proceso no
 arranca (ver sección de whitelist más abajo).
 
+> **pm2 corre `dist/index.js` compilado, no el código fuente.** Cualquier
+> `git pull` que toque código de `src/` requiere `npm run build` **antes**
+> de `pm2 restart bot-service` — si no, pm2 sigue corriendo el JS viejo sin
+> avisar que hay una versión más nueva disponible (así se detectó recién en
+> el ciclo de despliegue de la historia 3.1).
+
+```bash
+cd /opt/Asistente-de-gastos-Firefly-III-Telegram-Gemini-MCP-/bot-service
+git pull
+npm install       # solo si cambiaron dependencias
+npm run build
+pm2 restart bot-service
+```
+
 `PORT` en `.env` default `3001` — usar el mismo puerto en el server block de
 nginx del paso 3. Ajustar si `3001` ya está ocupado por otro proyecto de la VPS.
 

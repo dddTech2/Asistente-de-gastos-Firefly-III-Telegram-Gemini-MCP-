@@ -19,6 +19,23 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-13 — Historia 3.1 (comando /gasto) cerrada — verificada en producción
+- **Decision:** el administrador configuró `FIREFLY_PAT`/`FIREFLY_BASE_URL`/`FIREFLY_SOURCE_ACCOUNT`
+  en la VPS y confirmó que `/gasto 20000 almuerzo` crea la transacción real en Firefly III.
+- **Incidente de despliegue (2 rondas) documentado como aprendizaje permanente:** (1) el primer
+  intento post-`git pull` + `pm2 restart` sin `npm run build` dejó corriendo el `dist/` compilado
+  viejo — el bot seguía respondiendo el eco en vez de procesar `/gasto`, porque pm2 ejecuta
+  `dist/index.js`, no el código fuente. (2) el segundo intento, ya con `npm run build`, no tenía
+  las tres variables de entorno nuevas configuradas — el proceso no arrancó en absoluto (`env.ts`
+  falla rápido ante configuración incompleta, comportamiento esperado pero que se manifestó como
+  "el bot no responde nada"). Ambos se agregaron al README como nota operativa permanente para el
+  flujo de despliegue de cualquier cambio futuro que toque `src/`.
+- **Housekeeping:** `3.2.comando-resumen-mensual` (ya redactada como `ready-for-dev` en su propio
+  archivo) se libera ahora que `3.1` — su única dependencia, ya que comparten `firefly-client.ts`
+  — está `done`. Se agrega a `ready_for_dev` en `sprint-status.yaml`.
+- **Made by:** dev agent (implementación de 3.1)
+- **Supersedes:** la entrada anterior de 3.1 (implementada, verificación pendiente) — ahora `done`.
+
 ### 2026-09-13 — Historia 3.1 (comando /gasto): implementada, pendiente de verificación manual
 - **Decision:** primer camino real Telegram → Firefly III sin IA (Epic 3). `firefly-client.ts`
   (`createFireflyClient`) envuelve `POST /api/v1/transactions` (`type: withdrawal`,
