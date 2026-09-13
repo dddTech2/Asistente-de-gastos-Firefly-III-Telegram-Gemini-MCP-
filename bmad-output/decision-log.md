@@ -19,6 +19,68 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-13 — Resecuenciado tras corrección de rumbo (bmad-sprint-planning)
+- **Decision:** recalculado el grafo de dependencias completo de `sprint-status.yaml` tras la
+  corrección de rumbo (entrada anterior). Las 14 historias nuevas quedaron asignadas a waves ya
+  existentes (Epic 10 → wave 8; 4.4 → wave 11; 5.6-5.12 → wave 12) — el total se mantiene en 16
+  waves, 49 historias, sin inversiones de dependencia. Ninguna historia existente cambió de wave.
+- **Rationale:** se detectaron dos conflictos de `owned_scope` dentro de la misma wave: 4.4 vs 4.3
+  comparten `mcp/README.md` (resuelto subiendo 4.4 a wave 11, sin costo aguas abajo porque 5.1 ya
+  dominaba esa rama); 5.6-5.12 entre sí y con 5.2, y 10.1-10.6 entre sí, comparten
+  `promptBuilder.ts`/`telegramWebhook.ts` respectivamente dentro de la misma wave — se documentó el
+  conflicto en vez de fragmentar en waves individuales, dado que el proyecto se viene desarrollando
+  una historia a la vez (no hay despacho paralelo real todavía que lo vuelva un problema práctico).
+- **Impact:** `sprint-status.yaml` actualizado (`parallel_set` de las 14 historias nuevas,
+  `wave_widths` recalculado). `ready_for_dev` sin cambios (0.4, 3.2, 6.1, 7.1, 8.3, 8.4, 8.5).
+- **In-progress stories affected:** ninguna.
+- **Made by:** bmad-sprint-planning (routeado desde bmad-correct-course)
+- **Supersedes:** ninguna — complementa la entrada anterior de la misma corrección de rumbo.
+
+### 2026-09-13 — Course Correction: cobertura completa de Firefly III vía chat, sin excepciones
+- **Decision:** el usuario pidió explícitamente que **ninguna** función de Firefly III quede
+  fuera del alcance manejable desde el chat de Telegram ("no quiero dejar nada afuera"),
+  incluyendo funciones que el backlog original no contemplaba: transacciones avanzadas
+  (ingreso, transferencia, split, reconciliación), cuentas de activo y pasivos/deudas,
+  categorías/tags/grupos de objetos, presupuestos/auto-budget/piggy banks, automatización
+  (bills, recurrencias, reglas), multi-moneda, reportes/búsqueda/insights, y funciones de
+  cuenta/sistema (preferencias, PAT propios, 2FA, webhooks, import/export de datos).
+  Se confirmó también que, para acciones irreversibles, una **confirmación explícita del
+  usuario en el chat alcanza** como control de seguridad — no hace falta bloquearlas del
+  todo a nivel de protocolo.
+- **Rationale:** el bot ya está arquitecturado alrededor de un servidor MCP (Epic 4) que Gemini
+  (Epic 5) invoca como "tools" — esto significa que ampliar cobertura no es, en general, escribir
+  decenas de comandos rígidos nuevos, sino (a) no restringir qué tools expone el MCP y (b) que
+  el prompt de Gemini sepa pedir cualquiera de ellas. Se evaluó mantener el MVP original acotado
+  a gasto/resumen y expandir después según uso real (alternativa descartada por decisión
+  explícita del usuario, quien prefiere planificar la cobertura completa ahora).
+- **Impact:**
+  - **Epics modificados:** Epic 4 (Servidor MCP) — alcance cambia de "restringir tools" a
+    "exponer todo el catálogo con confirmación para irreversibles"; Epic 5 (Gemini) — alcance
+    se amplía de "gasto/consulta" a los 7 grupos financieros completos.
+  - **Epic nuevo:** Epic 10 "Cuenta y sistema vía chat" — cubre las funciones que no encajan
+    como tools de IA conversacional (2FA, preferencias, PAT propios, webhooks, import/export).
+  - **Historia re-escrita (LOCKED sections, con autorización explícita del usuario):** 4.3
+    `mcp-tools-restringidas` — de "limitar/bloquear tools destructivas" a "confirmación
+    explícita para acciones irreversibles". Slug/nombre de archivo sin cambios para no romper
+    referencias cruzadas; título y contenido completamente re-escritos.
+  - **Historias agregadas (14, todas compiladas como objetos de contexto completos, status
+    `backlog`):** 4.4 `auditoria-cobertura-tools-mcp` (spike, análogo a 1.2); 5.6
+    `transacciones-avanzadas-nl`; 5.7 `cuentas-pasivos-nl`; 5.8 `organizacion-nl`; 5.9
+    `presupuestos-ahorro-nl`; 5.10 `automatizacion-nl`; 5.11 `multi-moneda-nl`; 5.12
+    `reportes-insights-nl`; 10.1 `preferencias-via-chat`; 10.2 `gestion-pat-propio-chat`; 10.3
+    `activar-2fa-chat`; 10.4 `webhooks-firefly-notificaciones`; 10.5 `exportar-datos-chat`; 10.6
+    `importar-datos-chat`.
+  - **`sprint-status.yaml`:** epic-10 agregado con sus 6 historias; las 14 historias nuevas
+    agregadas a `stories:` con dependencias resueltas y `parallel_set: 0` como placeholder
+    (pendiente de recálculo real vía `bmad-sprint-planning`); `total_stories` actualizado a 49;
+    `total_waves`/`wave_widths` marcados como stale hasta el recálculo.
+  - **Ninguna historia existente fue cancelada** — la corrección solo amplía alcance, no recorta
+    nada del backlog original.
+- **In-progress stories affected:** ninguna — Epic 1-3 y 8.1 ya están `done`/cerradas y no las
+  toca esta corrección; ninguna historia estaba `in-progress` en el momento de aplicarla.
+- **Made by:** bmad-correct-course
+- **Supersedes:** ninguna entrada previa — primera corrección de rumbo del proyecto.
+
 ### 2026-09-13 — Historia 3.1 (comando /gasto) cerrada — verificada en producción
 - **Decision:** el administrador configuró `FIREFLY_PAT`/`FIREFLY_BASE_URL`/`FIREFLY_SOURCE_ACCOUNT`
   en la VPS y confirmó que `/gasto 20000 almuerzo` crea la transacción real en Firefly III.

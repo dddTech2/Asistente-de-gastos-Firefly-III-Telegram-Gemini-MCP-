@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-13T03:00:00Z"
+last_updated: "2026-09-13T05:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -93,6 +93,17 @@ epics:
   - "8.4.alertas-caida-servicio"
   - "8.5.prueba-carga-50-usuarios"
   - "8.6.ejecucion-reporte-prueba-carga"
+- id: "epic-10"
+  title: "Cuenta y sistema vía chat"
+  description: "# COURSE-CORRECTION 2026-09-13 -- agregada integramente por la correccion de rumbo"
+  status: backlog
+  story_ids:
+  - "10.1.preferencias-via-chat"
+  - "10.2.gestion-pat-propio-chat"
+  - "10.3.activar-2fa-chat"
+  - "10.4.webhooks-firefly-notificaciones"
+  - "10.5.exportar-datos-chat"
+  - "10.6.importar-datos-chat"
 stories:
 - id: "0.1.firefly-docker-compose"
   title: "Desplegar Firefly III + Postgres/MariaDB con Docker Compose"
@@ -306,7 +317,7 @@ stories:
   - "mcp/README.md"
   - "mcp/tools-inventory.md"
 - id: "4.3.mcp-tools-restringidas"
-  title: "Limitar el set de tools expuestas por el MCP"
+  title: "Confirmación explícita para acciones irreversibles del MCP (re-scope 2026-09-13)"
   epic_id: "epic-4"
   status: backlog
   file: "bmad-output/stories/4.3.mcp-tools-restringidas.story.md"
@@ -314,9 +325,20 @@ stories:
   dependencies:
   - "4.2.mcp-inspector-test"
   owned_scope:
-  - "infra/docker-compose.yml"
+  - "bot-service/src/mcp/toolClassification.ts"
+  - "bot-service/src/mcp/confirmacionAccionIrreversible.ts"
   - "mcp/README.md"
-  - "mcp/tools-allowlist.md"
+- id: "4.4.auditoria-cobertura-tools-mcp"
+  title: "Auditoría de cobertura de tools del MCP frente al catálogo completo de Firefly III"
+  epic_id: "epic-4"
+  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  file: "bmad-output/stories/4.4.auditoria-cobertura-tools-mcp.story.md"
+  parallel_set: 11   # bmad-sprint-planning: computado en wave 10 (max(4.1=8,4.2=9)+1), subido a 11 para evitar colision de owned_scope con 4.3 (mcp/README.md) en la misma wave -- sin costo aguas abajo, ya que 5.1=11 domina igual
+  dependencies:
+  - "4.1.mcp-multitenant-deploy"
+  - "4.2.mcp-inspector-test"
+  owned_scope:
+  - "mcp/cobertura-firefly.md"
 - id: "5.1.prompt-tools-gemini"
   title: "Armar prompt con historial + tools del MCP y llamar a Gemini"
   epic_id: "epic-5"
@@ -383,6 +405,88 @@ stories:
   - "src/conversation/historyWindow.ts"
   - "src/conversation/historyStore.ts"
   - "src/gemini/promptBuilder.ts"
+- id: "5.6.transacciones-avanzadas-nl"
+  title: "Transacciones avanzadas (ingreso, transferencia, split, reconciliación) vía lenguaje natural"
+  epic_id: "epic-5"
+  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  file: "bmad-output/stories/5.6.transacciones-avanzadas-nl.story.md"
+  parallel_set: 12   # comparte src/gemini/promptBuilder.ts con 5.2/5.7-5.12 en la misma wave -- coordinar/serializar manualmente si se despacha junto con esas (ver handoff_notes)
+  dependencies:
+  - "5.1.prompt-tools-gemini"
+  - "4.4.auditoria-cobertura-tools-mcp"
+  - "4.3.mcp-tools-restringidas"
+  owned_scope:
+  - "bot-service/src/gemini/prompts/transaccionesAvanzadas.prompt.ts"
+- id: "5.7.cuentas-pasivos-nl"
+  title: "Cuentas de activo y pasivos/deudas vía lenguaje natural"
+  epic_id: "epic-5"
+  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  file: "bmad-output/stories/5.7.cuentas-pasivos-nl.story.md"
+  parallel_set: 12   # comparte src/gemini/promptBuilder.ts con 5.2/5.6/5.8-5.12 -- ver handoff_notes
+  dependencies:
+  - "5.1.prompt-tools-gemini"
+  - "4.4.auditoria-cobertura-tools-mcp"
+  - "4.3.mcp-tools-restringidas"
+  owned_scope:
+  - "bot-service/src/gemini/prompts/cuentasPasivos.prompt.ts"
+- id: "5.8.organizacion-nl"
+  title: "Categorías, tags y grupos de objetos vía lenguaje natural"
+  epic_id: "epic-5"
+  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  file: "bmad-output/stories/5.8.organizacion-nl.story.md"
+  parallel_set: 12   # comparte src/gemini/promptBuilder.ts con 5.2/5.6-5.7/5.9-5.12 -- ver handoff_notes
+  dependencies:
+  - "5.1.prompt-tools-gemini"
+  - "4.4.auditoria-cobertura-tools-mcp"
+  - "4.3.mcp-tools-restringidas"
+  owned_scope:
+  - "bot-service/src/gemini/prompts/organizacion.prompt.ts"
+- id: "5.9.presupuestos-ahorro-nl"
+  title: "Presupuestos, auto-budget y piggy banks vía lenguaje natural"
+  epic_id: "epic-5"
+  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  file: "bmad-output/stories/5.9.presupuestos-ahorro-nl.story.md"
+  parallel_set: 12   # comparte src/gemini/promptBuilder.ts con 5.2/5.6-5.8/5.10-5.12 -- ver handoff_notes
+  dependencies:
+  - "5.1.prompt-tools-gemini"
+  - "4.4.auditoria-cobertura-tools-mcp"
+  - "4.3.mcp-tools-restringidas"
+  owned_scope:
+  - "bot-service/src/gemini/prompts/presupuestosAhorro.prompt.ts"
+- id: "5.10.automatizacion-nl"
+  title: "Bills/suscripciones, transacciones recurrentes y reglas vía lenguaje natural"
+  epic_id: "epic-5"
+  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  file: "bmad-output/stories/5.10.automatizacion-nl.story.md"
+  parallel_set: 12   # comparte src/gemini/promptBuilder.ts con 5.2/5.6-5.9/5.11-5.12 -- ver handoff_notes
+  dependencies:
+  - "5.1.prompt-tools-gemini"
+  - "4.4.auditoria-cobertura-tools-mcp"
+  - "4.3.mcp-tools-restringidas"
+  owned_scope:
+  - "bot-service/src/gemini/prompts/automatizacion.prompt.ts"
+- id: "5.11.multi-moneda-nl"
+  title: "Cuentas y transacciones en distinta moneda vía lenguaje natural"
+  epic_id: "epic-5"
+  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  file: "bmad-output/stories/5.11.multi-moneda-nl.story.md"
+  parallel_set: 12   # comparte src/gemini/promptBuilder.ts con 5.2/5.6-5.10/5.12 -- ver handoff_notes
+  dependencies:
+  - "5.1.prompt-tools-gemini"
+  - "4.4.auditoria-cobertura-tools-mcp"
+  owned_scope:
+  - "bot-service/src/gemini/prompts/multiMoneda.prompt.ts"
+- id: "5.12.reportes-insights-nl"
+  title: "Reportes, búsqueda e insights de gasto vía lenguaje natural"
+  epic_id: "epic-5"
+  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  file: "bmad-output/stories/5.12.reportes-insights-nl.story.md"
+  parallel_set: 12   # comparte src/gemini/promptBuilder.ts con 5.2/5.6-5.11 -- ver handoff_notes
+  dependencies:
+  - "5.1.prompt-tools-gemini"
+  - "4.4.auditoria-cobertura-tools-mcp"
+  owned_scope:
+  - "bot-service/src/gemini/prompts/reportesInsights.prompt.ts"
 - id: "6.1.webhook-dedup-update-id"
   title: "Descartar webhooks duplicados usando update_id"
   epic_id: "epic-6"
@@ -541,10 +645,80 @@ stories:
   owned_scope:
   - "scripts/load-test/k6-scenario-50-usuarios.js"
   - "docs/reports/prueba-carga-50-usuarios-resultados.md"
+- id: "10.1.preferencias-via-chat"
+  title: "Ver y cambiar preferencias de Firefly III desde el chat"
+  epic_id: "epic-10"
+  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  file: "bmad-output/stories/10.1.preferencias-via-chat.story.md"
+  parallel_set: 8   # comparte telegramWebhook.ts (registro de comando) con 10.2-10.6 -- ver handoff_notes
+  dependencies:
+  - "1.5.pat-por-request-mcp"
+  owned_scope:
+  - "bot-service/src/services/firefly-preferences-client.ts"
+  - "bot-service/src/commands/preferencias.ts"
+- id: "10.2.gestion-pat-propio-chat"
+  title: "Listar/crear/revocar Personal Access Tokens propios desde el chat"
+  epic_id: "epic-10"
+  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  file: "bmad-output/stories/10.2.gestion-pat-propio-chat.story.md"
+  parallel_set: 8   # comparte telegramWebhook.ts con 10.1/10.3-10.6 -- ver handoff_notes
+  dependencies:
+  - "1.5.pat-por-request-mcp"
+  owned_scope:
+  - "bot-service/src/services/firefly-tokens-client.ts"
+  - "bot-service/src/commands/misTokens.ts"
+- id: "10.3.activar-2fa-chat"
+  title: "Activar y gestionar 2FA desde el chat"
+  epic_id: "epic-10"
+  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  file: "bmad-output/stories/10.3.activar-2fa-chat.story.md"
+  parallel_set: 8   # comparte telegramWebhook.ts con 10.1-10.2/10.4-10.6 -- ver handoff_notes
+  dependencies:
+  - "1.5.pat-por-request-mcp"
+  owned_scope:
+  - "bot-service/src/services/firefly-2fa-client.ts"
+  - "bot-service/src/commands/dosFactores.ts"
+- id: "10.4.webhooks-firefly-notificaciones"
+  title: "Configurar webhooks de Firefly III y reenviar sus eventos por Telegram"
+  epic_id: "epic-10"
+  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  file: "bmad-output/stories/10.4.webhooks-firefly-notificaciones.story.md"
+  parallel_set: 8   # comparte telegramWebhook.ts con 10.1-10.3/10.5-10.6 -- ver handoff_notes
+  dependencies:
+  - "1.5.pat-por-request-mcp"
+  owned_scope:
+  - "bot-service/src/services/firefly-webhooks-client.ts"
+  - "bot-service/src/webhook/fireflyWebhook.ts"
+  - "bot-service/src/db/migrations/000X_create_webhooks_firefly.sql"
+  - "bot-service/src/db/webhooksFirefly.repository.ts"
+  - "bot-service/src/commands/notificarme.ts"
+- id: "10.5.exportar-datos-chat"
+  title: "Exportar datos de Firefly III y entregarlos como archivo en el chat"
+  epic_id: "epic-10"
+  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  file: "bmad-output/stories/10.5.exportar-datos-chat.story.md"
+  parallel_set: 8   # comparte telegramWebhook.ts con 10.1-10.4/10.6 -- ver handoff_notes
+  dependencies:
+  - "1.5.pat-por-request-mcp"
+  owned_scope:
+  - "bot-service/src/services/firefly-export-client.ts"
+  - "bot-service/src/commands/exportar.ts"
+- id: "10.6.importar-datos-chat"
+  title: "Importar transacciones subiendo un CSV al chat"
+  epic_id: "epic-10"
+  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  file: "bmad-output/stories/10.6.importar-datos-chat.story.md"
+  parallel_set: 8   # comparte telegramWebhook.ts con 10.1-10.5 y firefly-client.ts con 3.1 (ya done) -- ver handoff_notes
+  dependencies:
+  - "1.5.pat-por-request-mcp"
+  - "3.1.comando-gasto-manual"
+  owned_scope:
+  - "bot-service/src/services/csvImportParser.ts"
+  - "bot-service/src/commands/importar.ts"
 sequencing_summary:
-  total_epics: 9
-  total_stories: 35
-  total_waves: 16
+  total_epics: 10
+  total_stories: 49
+  total_waves: 16   # recalculado 2026-09-13 (bmad-sprint-planning, post COURSE-CORRECTION) -- las 14 historias nuevas entraron en waves ya existentes, no sumaron waves nuevas
   wave_widths:
   - 1
   - 2
@@ -553,11 +727,11 @@ sequencing_summary:
   - 4
   - 4
   - 4
-  - 2
+  - 8   # +6 (10.1-10.6, Epic 10 nuevo) -- comparten telegramWebhook.ts, coordinar si se despachan juntas
   - 1
   - 1
-  - 1
-  - 3
+  - 2   # +1 (4.4, bmad-sprint-planning la subio de wave10 a wave11 para no compartir mcp/README.md con 4.3 en la misma wave)
+  - 10  # +7 (5.6-5.12) -- comparten src/gemini/promptBuilder.ts con 5.2 y entre si, coordinar/serializar si se despachan juntas
   - 2
   - 2
   - 1
@@ -572,14 +746,28 @@ sequencing_summary:
     - "8.3.rotacion-secretos"
     - "8.4.alertas-caida-servicio"
     - "8.5.prueba-carga-50-usuarios"
-  handoff_notes: "Epic 1 completo (1.1-1.5 done). 3.1 (comando-gasto-manual) done: verificado en\
-    \ produccion, '/gasto 20000 almuerzo' crea la transaccion real en Firefly III. Bache de\
-    \ despliegue detectado y documentado en el README: pm2 corre dist/index.js compilado, no el\
-    \ codigo fuente -- todo git pull que toque src/ requiere 'npm run build' antes de 'pm2 restart',\
-    \ si no pm2 sigue corriendo la version vieja en silencio. 3.2 (comando-resumen-mensual) se\
-    \ libera ahora que 3.1 esta done (comparten firefly-client.ts). Usuario esta evaluando si el\
-    \ alcance actual del backlog (Epic 3/5, centrado en gasto/consulta) cubre lo que quiere del bot\
-    \ vs. todo lo que ofrece Firefly (cuentas, deudas, pasivos, suscripciones) -- posible\
-    \ correccion de rumbo (bmad-correct-course) antes de seguir sumando historias si decide ampliar\
-    \ el alcance. Nota operativa (de 1.1): la VPS no tiene psql en el host, hay que usar 'docker\
-    \ exec bot-postgres psql' (documentado en bot-service/README.md)."
+  handoff_notes: "COURSE-CORRECTION 2026-09-13 aplicada y resecuenciada (bmad-correct-course +\
+    \ bmad-sprint-planning, ver decision-log): el usuario pidio cobertura completa de Firefly III\
+    \ via chat, sin excepciones. 14 historias nuevas agregadas (compiladas como objetos de contexto\
+    \ completos, status backlog): 4.4 (auditoria-cobertura-tools-mcp, spike analogo a 1.2, wave 11),\
+    \ 5.6-5.12 (Epic 5 ampliado a todo el catalogo financiero via NL, wave 12 -- transacciones\
+    \ avanzadas, cuentas/pasivos, organizacion, presupuestos/ahorro, automatizacion, multi-moneda,\
+    \ reportes/insights), y Epic 10 completo (10.1-10.6, wave 8 -- funciones de cuenta/sistema que\
+    \ no pasan por el MCP: preferencias, PAT propios, 2FA, webhooks, export/import de datos).\
+    \ 4.3 fue re-escrita de punta a punta (LOCKED sections, con autorizacion explicita del\
+    \ usuario): paso de 'restringir tools destructivas' a 'exponer todo el catalogo con\
+    \ confirmacion explicita del usuario antes de acciones irreversibles' (misma wave 10, sin\
+    \ cambio de dependencias). Recalculo completado: 49 historias, sigue en 16 waves (las nuevas\
+    \ entraron en waves ya existentes), sin inversiones de dependencia. Dos conflictos de\
+    \ owned_scope detectados y resueltos: 4.4 se subio de wave10 a wave11 (evita compartir\
+    \ mcp/README.md con 4.3 en la misma wave, sin costo aguas abajo); 5.6-5.12 y 10.1-10.6 quedaron\
+    \ en sus waves dependency-driven (12 y 8) PERO comparten un archivo (promptBuilder.ts /\
+    \ telegramWebhook.ts respectivamente) con varias historias hermanas de la misma wave -- si se\
+    \ despachan en paralelo de verdad (no el patron actual de una historia a la vez), coordinar/\
+    \ serializar manualmente esos casos puntuales (marcado en cada parallel_set con un comentario).\
+    \ Ninguna historia existente cambio de wave. ready_for_dev sin cambios: 0.4, 3.2, 6.1, 7.1,\
+    \ 8.3, 8.4, 8.5 (ninguna de las 14 nuevas esta desbloqueada todavia). Epic 1 completo (1.1-1.5\
+    \ done). 3.1 (comando-gasto-manual) done: verificado en produccion. Bache de despliegue\
+    \ documentado en el README: pm2 corre dist/index.js compilado, requiere 'npm run build' antes\
+    \ de 'pm2 restart'. Nota operativa (de 1.1): la VPS no tiene psql en el host, hay que usar\
+    \ 'docker exec bot-postgres psql' (documentado en bot-service/README.md)."

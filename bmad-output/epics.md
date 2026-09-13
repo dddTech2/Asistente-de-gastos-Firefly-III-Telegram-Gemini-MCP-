@@ -146,11 +146,11 @@ comandos rígidos, antes de meter la capa de IA.
 **In scope (cited):**
 - MCP en modo multi-tenant (credenciales por request) [Source: docs/plan/backlog-scrum-completo.md#épica-4-servidor-mcp]
 - Prueba aislada con MCP Inspector [Source: docs/plan/backlog-scrum-completo.md#épica-4-servidor-mcp]
-- Restricción del set de tools expuestas (sin acciones destructivas) [Source: docs/plan/backlog-scrum-completo.md#épica-4-servidor-mcp]
+- **[# COURSE-CORRECTION 2026-09-13]** Cobertura **completa** del catálogo de funciones de Firefly III vía tools del MCP (transacciones avanzadas, cuentas/pasivos, categorías/tags, presupuestos/piggy banks, automatización/bills/reglas, multi-moneda, reportes/insights) — reemplaza el alcance original de "restringir tools" por "exponer todo, con confirmación explícita del usuario antes de ejecutar una acción irreversible" (ver decision-log, entrada de corrección de rumbo del 2026-09-13). [Source: decision-log.md#2026-09-13-course-correction]
 
 **Architecture touchpoints:** `@firefly-iii-mcp/server` (o equivalente Python), JSON-RPC (stdio/HTTP), `@modelcontextprotocol/inspector` [Source: docs/plan/system-design-v2-multiusuario.md#3-la-pieza-que-hace-viable-la-opción-b-credenciales-por-request-en-el-mcp]
 
-**Out of scope:** integración con Gemini (Epic 5).
+**Out of scope:** integración con Gemini (Epic 5); las funciones de cuenta/sistema de Firefly (2FA, preferencias, webhooks, import/export) que no pasan por el MCP de datos financieros — esas viven en Epic 10.
 
 **Stories (ordered):**
 
@@ -158,11 +158,14 @@ comandos rígidos, antes de meter la capa de IA.
 |------|------|--------|--------|
 | 4.1 | mcp-multitenant-deploy | Desplegar el MCP de Firefly III en modo multi-tenant | ready-for-dev |
 | 4.2 | mcp-inspector-test | Probar el MCP de forma aislada con MCP Inspector | ready-for-dev |
-| 4.3 | mcp-tools-restringidas | Limitar el set de tools expuestas por el MCP | ready-for-dev |
+| 4.3 | mcp-tools-restringidas | Confirmación explícita para acciones irreversibles del MCP (re-scope 2026-09-13, ver nota) | ready-for-dev |
+| 4.4 | auditoria-cobertura-tools-mcp | Auditar qué funciones de Firefly III cubre el MCP "de fábrica" vs. qué falta exponer a mano | backlog `# COURSE-CORRECTION 2026-09-13` |
 
 **Cross-epic dependencies:**
 - Blocked by: Epic 1 (necesita el mecanismo de PAT por-request), Epic 3 (valida conectividad a Firefly primero).
-- Blocks: Epic 5.
+- Blocks: Epic 5, Epic 10.
+
+**Nota de corrección de rumbo (2026-09-13):** el usuario pidió que **ninguna** función de Firefly III quede fuera del alcance manejable desde Telegram. La historia 4.3 originalmente restringía el MCP para bloquear acciones destructivas; se re-escribió (con autorización explícita del usuario, ver decision-log) para en cambio exponer todo el catálogo y exigir confirmación del usuario en el chat antes de ejecutar cualquier acción irreversible (borrar, reconciliar). Se agrega 4.4 como spike de cobertura, análogo a la 1.2, para no asumir qué trae el MCP server de fábrica.
 
 ---
 
@@ -177,10 +180,11 @@ natural, sin comandos rígidos.
 - Consulta de gasto en lenguaje natural [Source: docs/plan/backlog-scrum-completo.md#épica-5-integración-con-gemini-conversación-en-lenguaje-natural]
 - Manejo de datos inválidos con aclaración en vez de fallo [Source: docs/plan/backlog-scrum-completo.md#épica-5-integración-con-gemini-conversación-en-lenguaje-natural]
 - Memoria de conversación corta [Source: docs/plan/backlog-scrum-completo.md#épica-5-integración-con-gemini-conversación-en-lenguaje-natural]
+- **[# COURSE-CORRECTION 2026-09-13]** Gestión conversacional de **todo** el catálogo financiero de Firefly III (no solo gasto): transacciones avanzadas (ingreso, transferencia, split, reconciliación), cuentas y pasivos/deudas, categorías/tags/organización, presupuestos y ahorro (piggy banks), automatización (bills, recurrencias, reglas), multi-moneda, y reportes/insights/búsqueda. [Source: decision-log.md#2026-09-13-course-correction]
 
 **Architecture touchpoints:** Gemini API (`gemini-flash-latest`), `@modelcontextprotocol/sdk`, Redis (historial de conversación, TTL corto) [Source: docs/plan/system-design-v2-multiusuario.md#4-cambios-en-el-bot-service]
 
-**Out of scope:** control de costos/rate limiting (Epic 6).
+**Out of scope:** control de costos/rate limiting (Epic 6); funciones de cuenta/sistema que no son "financieras" en sentido estricto (2FA, preferencias, webhooks, import/export) → Epic 10.
 
 **Stories (ordered):**
 
@@ -191,9 +195,16 @@ natural, sin comandos rígidos.
 | 5.3 | consulta-gasto-nl | "¿Cuánto llevo gastado en comida este mes?" responde correctamente | ready-for-dev |
 | 5.4 | aclaracion-dato-invalido | Pedir aclaración cuando el dato es inválido, en vez de fallar en seco | ready-for-dev |
 | 5.5 | memoria-conversacion-corta | Recordar contexto de los últimos mensajes | ready-for-dev |
+| 5.6 | transacciones-avanzadas-nl | Ingreso, transferencia, split y reconciliación vía lenguaje natural | backlog `# COURSE-CORRECTION 2026-09-13` |
+| 5.7 | cuentas-pasivos-nl | Crear/consultar cuentas de activo y pasivos/deudas vía lenguaje natural | backlog `# COURSE-CORRECTION 2026-09-13` |
+| 5.8 | organizacion-nl | Categorías, tags y grupos de objetos vía lenguaje natural | backlog `# COURSE-CORRECTION 2026-09-13` |
+| 5.9 | presupuestos-ahorro-nl | Presupuestos, auto-budget y piggy banks vía lenguaje natural | backlog `# COURSE-CORRECTION 2026-09-13` |
+| 5.10 | automatizacion-nl | Bills/suscripciones, transacciones recurrentes y reglas vía lenguaje natural | backlog `# COURSE-CORRECTION 2026-09-13` |
+| 5.11 | multi-moneda-nl | Cuentas/transacciones en distinta moneda vía lenguaje natural | backlog `# COURSE-CORRECTION 2026-09-13` |
+| 5.12 | reportes-insights-nl | Reportes, búsqueda e insights de gasto vía lenguaje natural | backlog `# COURSE-CORRECTION 2026-09-13` |
 
 **Cross-epic dependencies:**
-- Blocked by: Epic 4.
+- Blocked by: Epic 4 (5.6-5.12 dependen además de 4.4, el spike de cobertura de tools).
 - Blocks: Epic 6, Epic 9.
 
 ---
@@ -318,17 +329,65 @@ usuario antes de guardar.
 
 ---
 
+## Epic 10: Cuenta y sistema vía chat `# COURSE-CORRECTION 2026-09-13`
+
+**Goal:** Ninguna función de Firefly III queda fuera del chat de Telegram — incluidas
+las que no son "conversación financiera" (2FA, preferencias, PAT propios,
+webhooks, import/export de datos), que Epic 4/5 no cubren porque no son tools
+naturales para que Gemini decida invocar sola.
+
+**In scope:**
+- Ver/cambiar preferencias del usuario (moneda default, cuenta default, idioma) [Inference]
+- Gestión de Personal Access Tokens propios del usuario final (no el de autenticación del bot, ver 1.4) [Inference]
+- Activar/gestionar 2FA, incluyendo enviar el QR como imagen de Telegram [Inference]
+- Configurar webhooks de Firefly III para que el bot reciba y reenvíe notificaciones de eventos (ej. "entró un ingreso") [Inference]
+- Exportar datos de Firefly III y entregarlos como archivo descargable en el chat [Inference]
+- Importar transacciones subiendo un CSV al chat [Inference]
+
+**Architecture touchpoints:** API REST de Firefly III (mismo patrón directo de Epic 3, no MCP —
+estas no son operaciones que tenga sentido dejar a discreción de la IA conversacional),
+`credential-resolver.ts` de la historia 1.5 (todas son acciones sobre la cuenta del
+propio usuario, requieren su PAT resuelto por `chat_id`), soporte de archivos de
+Telegram (`getFile`/`sendDocument`) para import/export y el QR de 2FA.
+
+**Out of scope:** cualquier operación financiera (transacciones, cuentas, presupuestos,
+reportes) — eso vive en Epic 3/4/5. Rotación de la clave `PAT_ENCRYPTION_KEY` propia
+del bot (eso es 8.3, un secreto de infraestructura, no del usuario final).
+
+**Stories (ordered):**
+
+| ID | Slug | Intent | Status |
+|------|------|--------|--------|
+| 10.1 | preferencias-via-chat | Ver y cambiar preferencias de Firefly III desde el chat | backlog `# COURSE-CORRECTION 2026-09-13` |
+| 10.2 | gestion-pat-propio-chat | Listar/crear/revocar Personal Access Tokens propios desde el chat | backlog `# COURSE-CORRECTION 2026-09-13` |
+| 10.3 | activar-2fa-chat | Activar y gestionar 2FA, incluyendo el QR como imagen de Telegram | backlog `# COURSE-CORRECTION 2026-09-13` |
+| 10.4 | webhooks-firefly-notificaciones | Configurar webhooks de Firefly III y reenviar sus eventos por Telegram | backlog `# COURSE-CORRECTION 2026-09-13` |
+| 10.5 | exportar-datos-chat | Exportar datos de Firefly III y entregarlos como archivo en el chat | backlog `# COURSE-CORRECTION 2026-09-13` |
+| 10.6 | importar-datos-chat | Importar transacciones subiendo un CSV al chat | backlog `# COURSE-CORRECTION 2026-09-13` |
+
+**Cross-epic dependencies:**
+- Blocked by: Epic 1 (PAT por-request, 1.5), Epic 2 (esqueleto del bot).
+- Blocks: ninguna.
+
+**Nota:** épica agregada íntegramente por la corrección de rumbo del 2026-09-13 (ver
+decision-log). Ninguna de sus historias tiene cita a `docs/plan/*` — el backlog
+original no contemplaba estas funciones; todo el contenido de Dev Notes de sus
+historias es `[Inference]` explícito.
+
+---
+
 ## Delivery Tracking (count-based)
 
-No story points, velocity, ni burndown. Se trackea solo por CONTEO:
+No story points, velocity, ni burndown. Se trackea solo por CONTEO. Este bloque
+es un snapshot de referencia — `bmad-output/sprint-status.yaml` es el
+system-of-record vivo del estado real de cada historia (se actualiza en cada
+cierre/avance); consultarlo para el conteo done/ready-for-dev/in-progress
+exacto en un momento dado.
 
-- Total stories: 37 (35 compiladas de Epic 0-8, +2 de Epic 9 exploratoria/no compilada)
-- Compiladas como objetos de contexto (`bmad-output/stories/`): 35 (Epic 0-8)
-- ready-for-dev: 35
-- backlog: 2 (9.1, 9.2 — solo mapeadas, no compiladas; ver nota de Epic 9)
-- Done: 0
-- Remaining: 35 activas + 2 no planificadas
-- Completion rate: 0/35
+- Total stories: 51 (49 compiladas de Epic 0-8 + Epic 10, +2 de Epic 9 exploratoria/no compilada)
+- Compiladas como objetos de contexto (`bmad-output/stories/`): 49 (Epic 0-8 + Epic 10)
+- backlog: 16 (14 agregadas por la corrección de rumbo del 2026-09-13: 4.4, 5.6-5.12, 10.1-10.6; +2 de Epic 9 exploratoria, solo mapeadas)
+- Ver `sprint-status.yaml` para done / ready-for-dev / in-progress exactos.
 
 ## Notes
 
@@ -336,6 +395,10 @@ No story points, velocity, ni burndown. Se trackea solo por CONTEO:
   Epic 0 → Epic 2 (parcial) → Epic 1.1 (whitelist) → Epic 3 → Epic 1 (resto) →
   Epic 4 → Epic 5 → Epic 6 → Epic 0 (resto: backups) / Epic 8 (parcial) → Epic 7 →
   Epic 8 (resto, incluyendo la compuerta 8.5/8.6).
+- `# COURSE-CORRECTION 2026-09-13`: Epic 10 se puede intercalar en paralelo con
+  Epic 3/4 (depende solo de Epic 1 y 2) — no bloquea ni es bloqueada por el resto
+  de la secuencia. 5.6-5.12 se insertan después de 5.1 y de 4.4, junto al resto
+  de Epic 5.
 - Epic 9 es exploratoria y no planificada — no se recomienda compilar sus
   historias todavía.
 - Los tres concerns del readiness check (spike de PAT en Epic 1, backlog duplicado,
