@@ -158,7 +158,7 @@ comandos rígidos, antes de meter la capa de IA.
 |------|------|--------|--------|
 | 4.1 | mcp-multitenant-deploy | Desplegar el MCP de Firefly III en modo multi-tenant | done — verificado en producción (daften/fireflyiii-mcp; primer candidato evaluado fue descartado por no soportar credenciales por-request) |
 | 4.2 | mcp-inspector-test | Probar el MCP de forma aislada con MCP Inspector | done — verificado en producción (140 tools catalogadas, aislamiento confirmado vía MCP Inspector CLI) |
-| 4.3 | mcp-tools-restringidas | Confirmación explícita para acciones irreversibles del MCP (re-scope 2026-09-13, ver nota) | ready-for-dev |
+| 4.3 | mcp-tools-restringidas | Confirmación explícita para acciones irreversibles del MCP (re-scope 2026-09-13, ver nota) | done — clasificación (toolClassification.ts) + confirmación por chat (confirmacionAccionIrreversible.ts), 19 tests |
 | 4.4 | auditoria-cobertura-tools-mcp | Auditar qué funciones de Firefly III cubre el MCP "de fábrica" vs. qué falta exponer a mano | ready-for-dev |
 
 **Cross-epic dependencies:**
@@ -190,7 +190,7 @@ natural, sin comandos rígidos.
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 5.1 | prompt-tools-gemini | Armar prompt con historial + tools del MCP y llamar a Gemini | ready-for-dev |
+| 5.1 | prompt-tools-gemini | Armar prompt con historial + tools del MCP y llamar a Gemini | ready-for-dev (desbloqueada 2026-09-13 al cerrar 4.3) |
 | 5.2 | registro-gasto-nl | "Gasté 20 mil en almuerzo" crea la transacción correcta | ready-for-dev |
 | 5.3 | consulta-gasto-nl | "¿Cuánto llevo gastado en comida este mes?" responde correctamente | ready-for-dev |
 | 5.4 | aclaracion-dato-invalido | Pedir aclaración cuando el dato es inválido, en vez de fallar en seco | ready-for-dev |

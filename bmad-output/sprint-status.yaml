@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-13T10:00:00Z"
+last_updated: "2026-09-13T11:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -56,10 +56,11 @@ epics:
   - "4.1.mcp-multitenant-deploy"
   - "4.2.mcp-inspector-test"
   - "4.3.mcp-tools-restringidas"
+  - "4.4.auditoria-cobertura-tools-mcp"
 - id: "epic-5"
   title: "Integración con Gemini (conversación en lenguaje natural)"
   description: ""
-  status: backlog
+  status: in-progress   # 5.1 paso a ready-for-dev 2026-09-13
   story_ids:
   - "5.1.prompt-tools-gemini"
   - "5.2.registro-gasto-nl"
@@ -319,7 +320,7 @@ stories:
 - id: "4.3.mcp-tools-restringidas"
   title: "Confirmación explícita para acciones irreversibles del MCP (re-scope 2026-09-13)"
   epic_id: "epic-4"
-  status: ready-for-dev
+  status: done
   file: "bmad-output/stories/4.3.mcp-tools-restringidas.story.md"
   parallel_set: 10
   dependencies:
@@ -342,7 +343,7 @@ stories:
 - id: "5.1.prompt-tools-gemini"
   title: "Armar prompt con historial + tools del MCP y llamar a Gemini"
   epic_id: "epic-5"
-  status: backlog
+  status: ready-for-dev   # desbloqueada 2026-09-13: su unica dependencia (4.3) ya esta done
   file: "bmad-output/stories/5.1.prompt-tools-gemini.story.md"
   parallel_set: 11
   dependencies:
@@ -740,8 +741,8 @@ sequencing_summary:
     count: 8
     story_ids:
     - "0.4.backups-automaticos"
-    - "4.3.mcp-tools-restringidas"
     - "4.4.auditoria-cobertura-tools-mcp"
+    - "5.1.prompt-tools-gemini"
     - "6.1.webhook-dedup-update-id"
     - "7.1.waterfly-conexion-pat"
     - "8.3.rotacion-secretos"
@@ -809,4 +810,18 @@ sequencing_summary:
     \ 4.2) y 4.4 (auditoria-cobertura-tools-mcp, dependencias 4.1+4.2, ambas ya\
     \ done) quedan desbloqueadas y pasan a ready-for-dev. Epic 4 sigue in-progress\
     \ (4.3 y 4.4 pendientes). ready_for_dev actualizado: 0.4, 4.3, 4.4, 6.1, 7.1,\
-    \ 8.3, 8.4, 8.5."
+    \ 8.3, 8.4, 8.5.\n\
+     ACTUALIZACION 2026-09-13T11:00:00Z: 4.3 (mcp-tools-restringidas) CERRADA\
+    \ done -- re-scope 2026-09-13 implementado: toolClassification.ts clasifica\
+    \ las 140 tools (16 delete_* + 3 trigger_* + reconciliacion via\
+    \ update_transaction/bulk_update_transactions con reconciled:true =\
+    \ irreversible; resto reversible; fail-safe para tools desconocidas);\
+    \ confirmacionAccionIrreversible.ts pide confirmacion por botones inline\
+    \ antes de ejecutar, nunca expone PAT ni JSON crudo. 19 tests unitarios,\
+    \ MCP mockeado. AC #2 satisfecho por construccion (no se toco\
+    \ infra/docker-compose.yml, el MCP sigue exponiendo el catalogo completo).\
+    \ Consecuencia de dependencias: 5.1 (prompt-tools-gemini, unica dependencia\
+    \ 4.3) queda desbloqueada y pasa a ready-for-dev -- primera historia de\
+    \ Epic 5 (integracion con Gemini) alcanzable. Epic 5 pasa a in-progress.\
+    \ Epic 4 sigue in-progress (falta 4.4). ready_for_dev actualizado: 0.4, 4.4,\
+    \ 5.1, 6.1, 7.1, 8.3, 8.4, 8.5."

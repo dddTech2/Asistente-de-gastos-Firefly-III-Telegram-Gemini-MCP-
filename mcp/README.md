@@ -127,3 +127,36 @@ npx @modelcontextprotocol/inspector --cli --server-url http://127.0.0.1:${MCP_FI
   crashear el servidor (`tool_not_found`, exit code 5 en el CLI); un PAT inválido/vacío
   devuelve `isError: true` con el error de autenticación de Firefly III reenviado tal
   cual — sin fallback a ningún token fijo.
+
+## Clasificación irreversible/reversible y confirmación en el chat (historia 4.3)
+
+El MCP sigue exponiendo el catálogo **completo** de 140 tools sin ninguna restricción a
+nivel de protocolo (AC #2) — no hay allowlist ni preset aplicado en `mcp-firefly`. En su
+lugar, la barrera de seguridad vive en el **Bot Service**, determinística en código, no
+en el prompt de un modelo:
+
+- `bot-service/src/mcp/toolClassification.ts` — clasifica cada tool call como
+  `"irreversible"` o `"reversible"` (código = fuente de verdad; ver el archivo para el
+  detalle completo). Resumen del criterio:
+  - **Irreversible:** las 16 tools `delete_*`; las 3 tools `trigger_*`
+    (`trigger_rule`, `trigger_rule_group`, `trigger_recurrence` — ejecutan una regla o
+    recurrencia ya configurada cuyo efecto real el MCP no puede anticipar, puede incluir
+    borrados en cascada); `update_transaction`/`bulk_update_transactions` **solo** cuando
+    el argumento marca `reconciled: true` (Firefly III no tiene una tool de
+    reconciliación separada); y, por fail-safe, cualquier tool que no esté en el
+    catálogo conocido de 140 (mismo criterio fail-safe que `credential-resolver.ts` de
+    la historia 1.5: mejor pedir confirmación de más que ejecutar sin control una tool
+    nueva no auditada).
+  - **Reversible:** todo lo demás — las 84 tools de lectura, y las 36 restantes de
+    creación/edición (`create_*`, `update_*` sin reconciliar, `upload_attachment`,
+    `enable/disable_currency`, `set_primary_currency`).
+- `bot-service/src/mcp/confirmacionAccionIrreversible.ts` — antes de ejecutar una tool
+  call clasificada como irreversible, envía un mensaje al chat con botones inline ("✅ Sí,
+  confirmar" / "❌ Cancelar") describiendo la acción en lenguaje humano (nunca el JSON
+  crudo de la tool ni el PAT); la tool solo se invoca si el usuario confirma con el
+  botón — cancelar, ignorar, o cualquier otra cosa nunca la ejecuta.
+- Ambos módulos están probados con tests unitarios (`bot-service/tests/mcp/`, cliente MCP
+  mockeado, sin pegarle a un MCP real) y aún no están conectados a un flujo real de
+  tool-calling — eso lo cablea Epic 5 (integración con Gemini), que debe invocar
+  `clasificarToolCall` antes de ejecutar cualquier tool y, si el resultado es
+  `"irreversible"`, pasar por `solicitarConfirmacion` en vez de ejecutar directo.
