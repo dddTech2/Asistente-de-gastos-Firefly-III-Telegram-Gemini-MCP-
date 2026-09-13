@@ -363,6 +363,47 @@ el mecanismo de forma aislada, con el cliente MCP mockeado en los tests —
 Epic 4/5 deben llamar a `getUserCredentials` antes de cualquier invocación de
 tool, en vez de reimplementar resolución de credenciales en otro lugar.
 
+## Comando `/gasto` (historia 3.1)
+
+Primer camino real Telegram → Firefly III, **sin IA todavía** (Epic 3): valida
+el pipeline de punta a punta antes de meter MCP (Epic 4) y Gemini (Epic 5).
+Usa el PAT **propio del desarrollador** por variable de entorno — todavía no
+hay resolución de PAT por-usuario acá (eso llega cuando Epic 4 conecte el
+`credential-resolver.ts` de la historia 1.5).
+
+```
+/gasto <monto> <concepto>
+/gasto 20000 almuerzo
+```
+
+Requiere en `.env` (SÍ los usa el proceso principal — el bot no arranca sin
+ellos):
+
+```
+FIREFLY_PAT=<tu PAT personal, generado en /profile → OAuth>
+FIREFLY_BASE_URL=https://firefly.nyoholding.com
+FIREFLY_SOURCE_ACCOUNT=<nombre exacto de una cuenta de activo existente, ej. "Efectivo">
+```
+
+`FIREFLY_SOURCE_ACCOUNT` no está en ningún documento de la historia — Firefly
+III exige una cuenta de activo como origen de cualquier `withdrawal`, así que
+hace falta indicar cuál usar. `src/services/firefly-client.ts` arma la
+transacción con `type: "withdrawal"`, `source_name` (esa cuenta) y
+`destination_name` = el concepto (Firefly crea/reutiliza la cuenta de gasto
+con ese nombre automáticamente).
+
+Comportamiento:
+
+- Monto no numérico, cero/negativo, o sin concepto → responde el mensaje de
+  uso, **nunca** llama a Firefly III.
+- Éxito → confirma monto, concepto e id de la transacción creada.
+- Cualquier error de Firefly III (401, 422, timeout, caído) → mensaje
+  genérico al usuario ("No se pudo registrar el gasto..."), nunca expone el
+  status HTTP ni ningún detalle técnico; el error real se loggea (`chat_id` +
+  `err`, nunca el PAT).
+- No interpreta separadores de miles: `20.000` se lee como `20`, no como
+  veinte mil — usar el formato plano del ejemplo de arriba.
+
 ## Fuera de alcance de esta historia
 
 - Deduplicar updates repetidos por `update_id` → historia 6.1.

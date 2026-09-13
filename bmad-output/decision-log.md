@@ -19,6 +19,32 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-13 — Historia 3.1 (comando /gasto): implementada, pendiente de verificación manual
+- **Decision:** primer camino real Telegram → Firefly III sin IA (Epic 3). `firefly-client.ts`
+  (`createFireflyClient`) envuelve `POST /api/v1/transactions` (`type: withdrawal`,
+  `source_name`/`destination_name`, timeout de 8s como circuit breaker simple) usando el **PAT
+  propio del desarrollador** por variable de entorno (`FIREFLY_PAT`/`FIREFLY_BASE_URL`), sin
+  resolución por-usuario todavía (eso es Epic 4, conectando 1.5). `gasto.ts` parsea/valida
+  `/gasto <monto> <concepto>` y se registra en `telegramWebhook.ts` ANTES del echo (historia 2.2)
+  para que un `/gasto` no dispare también el eco.
+- **Desviación de alcance:** se agregó `FIREFLY_SOURCE_ACCOUNT` (no mencionada por la historia) —
+  Firefly III exige una cuenta de activo como origen de cualquier `withdrawal`; sin ella AC #1 es
+  imposible de cumplir contra la API real.
+- **Adaptación de nombres:** la historia menciona `bot-service/src/bot.ts` como router de comandos;
+  ese archivo no existe — el router real de Epic 2 es
+  `webhook/telegramWebhook.ts::createTelegramWebhookHandler`, que ahora recibe `fireflyClient` como
+  parámetro adicional (junto con `server.ts` e `index.ts`). Mismo patrón de adaptación ya usado en
+  1.1/1.3.
+- **Manejo de errores:** cualquier fallo de Firefly (401/422/timeout/caído) colapsa a un mensaje
+  genérico para el usuario y se loggea solo `{chat_id, err}` (nunca el PAT ni el status técnico al
+  usuario) — mismo criterio fail-safe de `credential-resolver.ts` (1.5).
+- **Testing:** 103 tests pasan (17 nuevos: `firefly-client.test.ts` con `fetch` mockeado,
+  `gasto.test.ts` con `bot.handleUpdate` real de grammY). `tsc --noEmit` limpio. La propia DoD de
+  la historia exige verificación manual del camino feliz + un caso de error contra Firefly III
+  real — no se puede hacer desde acá sin el PAT real del desarrollador (nunca se comparte en el
+  chat), queda pendiente del administrador en la VPS.
+- **Made by:** dev agent (implementación de 3.1)
+
 ### 2026-09-13 — Historia 1.5 (PAT por-request en el MCP) cerrada — Epic 1 completo
 - **Decision:** implementado `bot-service/src/auth/credential-resolver.ts`:
   `createCredentialResolver({ usuariosRepository, fireflyUrl })` retorna `getUserCredentials(chatId)`,

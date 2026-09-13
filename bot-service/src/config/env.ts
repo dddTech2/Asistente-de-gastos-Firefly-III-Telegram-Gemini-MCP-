@@ -29,4 +29,14 @@ export const env = {
   // dejar de arrancar por faltar un secreto que ni siquiera usa.
   fireflyAdminBaseUrl: process.env.FIREFLY_ADMIN_BASE_URL || "",
   fireflyAdminToken: process.env.FIREFLY_ADMIN_TOKEN || "",
+  // Historia 3.1: PAT propio del desarrollador (fase de validación pre-multi-
+  // tenancy, distinto del PAT admin "owner" de arriba) para que el comando
+  // /gasto cree transacciones reales. Requeridos: el proceso principal ya usa
+  // esto para una funcionalidad real, no solo un script de un solo uso.
+  fireflyPat: required("FIREFLY_PAT"),
+  fireflyBaseUrl: required("FIREFLY_BASE_URL"),
+  // Cuenta de activo (asset account) de origen ya existente en Firefly III --
+  // Firefly exige una para crear un withdrawal. No especificado por ningún
+  // documento fuente de la historia [Inference], ver Dev Agent Record de 3.1.
+  fireflySourceAccount: required("FIREFLY_SOURCE_ACCOUNT"),
 };

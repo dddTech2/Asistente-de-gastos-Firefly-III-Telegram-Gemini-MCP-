@@ -2,10 +2,12 @@ import type { Request, RequestHandler, Response } from "express";
 import type { Bot } from "grammy";
 import type { Update } from "grammy/types";
 import { createWhitelistMiddleware } from "../auth/whitelistMiddleware.js";
+import { registerGastoHandler } from "../commands/gasto.js";
 import type { UsuariosRepository } from "../db/usuarios.repository.js";
 import { registerEchoHandler } from "../handlers/echoHandler.js";
 import { InMemoryProcessingQueue } from "../queue/inMemoryProcessingQueue.js";
 import { logger } from "../lib/logger.js";
+import type { FireflyClient } from "../services/firefly-client.js";
 
 /**
  * `update_id`/`chat_id` viajan en cada log para poder correlacionar reintentos
@@ -44,9 +46,18 @@ function extractLogContext(update: unknown): { update_id?: number; chat_id?: num
  * El middleware de whitelist (historia 1.1) se registra ANTES que cualquier
  * handler de negocio (echo, futuro Firefly/Gemini/MCP) — en grammY, si no
  * llama a `next()`, el resto de la cadena no corre para ese update (AC #4).
+ *
+ * `registerGastoHandler` (historia 3.1) se registra ANTES que el echo: al no
+ * llamar a `next()`, un `/gasto ...` no vuelve a disparar el eco para el
+ * mismo update.
  */
-export function createTelegramWebhookHandler(bot: Bot, usuariosRepository: UsuariosRepository): RequestHandler {
+export function createTelegramWebhookHandler(
+  bot: Bot,
+  usuariosRepository: UsuariosRepository,
+  fireflyClient: FireflyClient,
+): RequestHandler {
   bot.use(createWhitelistMiddleware(bot, usuariosRepository));
+  registerGastoHandler(bot, fireflyClient);
   registerEchoHandler(bot);
 
   const queue = new InMemoryProcessingQueue<Update>(

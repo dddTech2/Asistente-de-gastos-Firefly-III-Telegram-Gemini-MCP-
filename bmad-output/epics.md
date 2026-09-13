@@ -129,7 +129,7 @@ comandos rígidos, antes de meter la capa de IA.
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 3.1 | comando-gasto-manual | Comando `/gasto <monto> <concepto>` crea una transacción real | ready-for-dev |
+| 3.1 | comando-gasto-manual | Comando `/gasto <monto> <concepto>` crea una transacción real | in-progress — implementado y testeado localmente, pendiente de verificación manual en producción (DoD) |
 | 3.2 | comando-resumen-mensual | Comando que lista transacciones del mes | ready-for-dev |
 
 **Cross-epic dependencies:**

@@ -3,6 +3,7 @@ import { pool } from "./db/pool.js";
 import { createUsuariosRepository } from "./db/usuarios.repository.js";
 import { logger } from "./lib/logger.js";
 import { createServer } from "./server.js";
+import { createFireflyClient } from "./services/firefly-client.js";
 
 /**
  * Red de seguridad para excepciones/rechazos que escapan a cualquier try/catch
@@ -20,12 +21,18 @@ process.on("unhandledRejection", (reason) => {
 });
 
 const usuariosRepository = createUsuariosRepository(pool, env.patEncryptionKey);
+const fireflyClient = createFireflyClient({
+  baseUrl: env.fireflyBaseUrl,
+  pat: env.fireflyPat,
+  sourceAccount: env.fireflySourceAccount,
+});
 
 const app = await createServer({
   botToken: env.telegramBotToken,
   webhookSecret: env.telegramWebhookSecret,
   webhookPath: env.webhookPath,
   usuariosRepository,
+  fireflyClient,
 });
 
 app.listen(env.port, () => {
