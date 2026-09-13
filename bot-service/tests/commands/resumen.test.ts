@@ -67,6 +67,14 @@ describe("formatMensajeResumen", () => {
     expect(mensaje).toContain("5000");
     expect(mensaje).toContain("cafe");
   });
+
+  it("formatea el monto a 2 decimales aunque Firefly devuelva precisión arbitraria", () => {
+    const mensaje = formatMensajeResumen([
+      { fecha: "2026-09-05", monto: "20000.00000000000000000000", concepto: "almuerzo" },
+    ]);
+    expect(mensaje).toContain("20000.00");
+    expect(mensaje).not.toContain("20000.0000000000000000000");
+  });
 });
 
 describe("registerResumenHandler", () => {

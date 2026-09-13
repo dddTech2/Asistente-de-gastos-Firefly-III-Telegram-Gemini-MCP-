@@ -25,12 +25,23 @@ export function calcularRangoMesActual(ahora: Date = new Date()): { desde: strin
   return { desde: formatFecha(primerDia), hasta: formatFecha(ahora) };
 }
 
+/**
+ * Firefly III devuelve `amount` como string con precisión arbitraria (ej.
+ * `"20000.00000000000000000000"`) -- se formatea a 2 decimales para mostrar.
+ * Si por algún motivo no es numérico, se muestra tal cual llegó en vez de
+ * ocultar el dato. [Inference]
+ */
+function formatMonto(monto: string): string {
+  const numero = Number(monto);
+  return Number.isFinite(numero) ? numero.toFixed(2) : monto;
+}
+
 export function formatMensajeResumen(transacciones: TransaccionResumen[]): string {
   if (transacciones.length === 0) {
     return MENSAJE_SIN_MOVIMIENTOS;
   }
 
-  const lineas = transacciones.map((t) => `${t.fecha.slice(0, 10)} — ${t.monto} — ${t.concepto}`);
+  const lineas = transacciones.map((t) => `${t.fecha.slice(0, 10)} — ${formatMonto(t.monto)} — ${t.concepto}`);
   return ["Resumen del mes:", ...lineas].join("\n");
 }
 
