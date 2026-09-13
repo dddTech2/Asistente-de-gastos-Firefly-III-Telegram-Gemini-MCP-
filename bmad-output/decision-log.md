@@ -19,6 +19,27 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-13 — Bug de producción corregido: Gemini rechazaba la segunda ronda de tool-calling por falta de `thoughtSignature`
+- **Decision:** `messageOrchestrator.agregarResultadoTool` ahora reutiliza el `Content` REAL
+  devuelto por Gemini (`respuesta.candidates[0].content`) al reenviar el historial en la
+  siguiente ronda del ciclo, en vez de reconstruir el `Part` del `functionCall` a mano a partir
+  de `nombreTool`/`argumentos`. Fallback defensivo (con warning en logs) si por algún motivo
+  `candidates[0].content` no viene en la respuesta.
+- **Rationale:** en producción, tras resolver la asociación del PAT de un usuario, el primer
+  pedido real con tool calling (`get_transactions`) falló con `400 INVALID_ARGUMENT`: "Function
+  call is missing a thought_signature in functionCall parts". El modelo detrás de
+  `gemini-flash-latest` usa "thinking" y exige que el `thoughtSignature` opaco que devuelve en el
+  `Part` de cada `functionCall` se le reenvíe intacto en la siguiente llamada del mismo ciclo
+  multi-turno; `agregarResultadoTool` (escrito en 5.1, nunca tocado desde entonces) descartaba
+  ese campo al reconstruir el `Content` del rol `"model"` a mano. No es un gap de planning (no
+  hay una historia sin cubrir) sino un defecto real dentro del alcance ya cerrado de 5.1/5.14 --
+  se corrige directo, sin abrir una historia nueva, y se documenta acá para que quede rastreado.
+  2 tests nuevos en `messageOrchestrator.test.ts` (preserva `thoughtSignature`; fallback
+  defensivo sin `candidates`).
+- **Made by:** dev (bug reportado en logs de producción por el usuario)
+
+---
+
 ### 2026-09-13 — Segundo gap de planning: la confirmación de acciones irreversibles (4.3) tampoco estaba cableada. Nueva historia 5.14 agregada
 - **Decision:** se agrega la historia `5.14.confirmar-acciones-irreversibles` a Épica 5, en
   `ready-for-dev` de inmediato (dependencias -- 4.3, 5.13 -- ya `done`), y se implementa en la

@@ -12,8 +12,20 @@ function respuestaTexto(texto: string): GenerateContentResponse {
   return { functionCalls: undefined, text: texto } as unknown as GenerateContentResponse;
 }
 
-function respuestaConFunctionCall(name: string, args: Record<string, unknown>): GenerateContentResponse {
-  return { functionCalls: [{ name, args }], text: undefined } as unknown as GenerateContentResponse;
+function respuestaConFunctionCall(
+  name: string,
+  args: Record<string, unknown>,
+  thoughtSignature?: string,
+): GenerateContentResponse {
+  const parte: Record<string, unknown> = { functionCall: { name, args } };
+  if (thoughtSignature !== undefined) {
+    parte.thoughtSignature = thoughtSignature;
+  }
+  return {
+    functionCalls: [{ name, args }],
+    text: undefined,
+    candidates: [{ content: { role: "model", parts: [parte] } }],
+  } as unknown as GenerateContentResponse;
 }
 
 function buildDeps(overrides: Partial<MessageOrchestratorDeps> = {}): {
@@ -209,6 +221,36 @@ describe("messageOrchestrator", () => {
     const resultado = await orquestador.procesarMensaje(CHAT_ID, "hola");
 
     expect(resultado).toBe("respuesta pese al fallo de redis");
+  });
+
+  it("preserva el thoughtSignature de Gemini en el historial reenviado (bug de producción: 400 thought_signature faltante)", async () => {
+    const { deps, generarRespuesta, ejecutarTool } = buildDeps();
+    generarRespuesta
+      .mockResolvedValueOnce(respuestaConFunctionCall("get_accounts", {}, "firma-opaca-123"))
+      .mockResolvedValueOnce(respuestaTexto("listo"));
+    ejecutarTool.mockResolvedValue({ contenido: "ok", esError: false });
+
+    const orquestador = createMessageOrchestrator(deps);
+    await orquestador.procesarMensaje(CHAT_ID, "qué cuentas tengo?");
+
+    const segundaLlamada = generarRespuesta.mock.calls[1]![0] as {
+      contents: Array<{ role: string; parts: Array<Record<string, unknown>> }>;
+    };
+    const parteModelo = segundaLlamada.contents.find((c) => c.role === "model");
+    expect(parteModelo!.parts[0]!.thoughtSignature).toBe("firma-opaca-123");
+  });
+
+  it("si la respuesta de Gemini no trae candidates[0].content, reconstruye el functionCall a mano en vez de romper el ciclo (defensivo)", async () => {
+    const { deps, generarRespuesta, ejecutarTool } = buildDeps();
+    generarRespuesta
+      .mockResolvedValueOnce({ functionCalls: [{ name: "get_accounts", args: {} }], text: undefined } as unknown as GenerateContentResponse)
+      .mockResolvedValueOnce(respuestaTexto("listo"));
+    ejecutarTool.mockResolvedValue({ contenido: "ok", esError: false });
+
+    const orquestador = createMessageOrchestrator(deps);
+    const resultado = await orquestador.procesarMensaje(CHAT_ID, "qué cuentas tengo?");
+
+    expect(resultado).toBe("listo");
   });
 
   it("corta después de un tope de rondas si Gemini nunca deja de pedir tools (guarda anti-loop)", async () => {

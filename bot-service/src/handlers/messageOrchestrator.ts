@@ -89,15 +89,26 @@ async function guardarMensajeSeguro(historyStore: HistoryStore, chatId: number, 
   }
 }
 
+/**
+ * `contenidoModelo` debe ser el `Content` REAL que devolvió Gemini
+ * (`respuesta.candidates[0].content`), no uno reconstruido a mano a partir de
+ * `nombreTool`/`argumentos`. Los modelos con "thinking" (ej. el que resuelve
+ * `gemini-flash-latest`) devuelven un `thoughtSignature` opaco en el `Part`
+ * del `functionCall`, y la API lo exige de vuelta tal cual en la siguiente
+ * llamada del mismo ciclo -- si se reconstruye el part a mano se pierde ese
+ * campo y Gemini responde 400 `INVALID_ARGUMENT` ("missing a
+ * thought_signature"), cortando cualquier tool call en producción. [Bug real
+ * detectado en producción, ver decision-log.md]
+ */
 function agregarResultadoTool(
   contents: Content[],
+  contenidoModelo: Content,
   nombreTool: string,
-  argumentos: Record<string, unknown>,
   resultado: ResultadoTool,
 ): Content[] {
   return [
     ...contents,
-    { role: "model", parts: [{ functionCall: { name: nombreTool, args: argumentos } }] },
+    contenidoModelo,
     {
       role: "user",
       parts: [
@@ -157,6 +168,16 @@ export function createMessageOrchestrator(deps: MessageOrchestratorDeps): Messag
       const nombreTool = llamada.name ?? "";
       const argumentos = (llamada.args ?? {}) as Record<string, unknown>;
 
+      const contenidoModelo = respuesta.candidates?.[0]?.content;
+      if (!contenidoModelo) {
+        logger.warn(
+          { chat_id: chatId, tool: nombreTool },
+          "Respuesta de Gemini sin candidates[0].content al pedir una tool call; se reconstruye el functionCall a mano (podría faltar thoughtSignature)",
+        );
+      }
+      const contenidoModeloParaHistorial: Content =
+        contenidoModelo ?? { role: "model", parts: [{ functionCall: { name: nombreTool, args: argumentos } }] };
+
       logger.info({ chat_id: chatId, tool: nombreTool, argumentos }, "Gemini solicitó una tool call");
 
       if (clasificarToolCall(nombreTool, argumentos) === "irreversible") {
@@ -167,7 +188,7 @@ export function createMessageOrchestrator(deps: MessageOrchestratorDeps): Messag
 
         await confirmador.solicitarConfirmacion(chatId, resumenAccion, async () => {
           const resultado = await deps.mcpToolExecutor.ejecutarTool(pat, nombreTool, argumentos);
-          const contentsConResultado = agregarResultadoTool(contentsCapturados, nombreTool, argumentos, resultado);
+          const contentsConResultado = agregarResultadoTool(contentsCapturados, contenidoModeloParaHistorial, nombreTool, resultado);
           const siguiente = await ejecutarRondas(chatId, pat, systemInstruction, tools, contentsConResultado, ronda + 1);
 
           if (siguiente === null) {
@@ -196,7 +217,7 @@ export function createMessageOrchestrator(deps: MessageOrchestratorDeps): Messag
         "Resultado de la tool call del MCP",
       );
 
-      contents = agregarResultadoTool(contents, nombreTool, argumentos, resultado);
+      contents = agregarResultadoTool(contents, contenidoModeloParaHistorial, nombreTool, resultado);
     }
 
     return undefined;
