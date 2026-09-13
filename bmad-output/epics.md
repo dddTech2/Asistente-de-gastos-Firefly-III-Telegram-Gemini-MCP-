@@ -157,9 +157,9 @@ comandos rígidos, antes de meter la capa de IA.
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
 | 4.1 | mcp-multitenant-deploy | Desplegar el MCP de Firefly III en modo multi-tenant | done — verificado en producción (daften/fireflyiii-mcp; primer candidato evaluado fue descartado por no soportar credenciales por-request) |
-| 4.2 | mcp-inspector-test | Probar el MCP de forma aislada con MCP Inspector | ready-for-dev |
+| 4.2 | mcp-inspector-test | Probar el MCP de forma aislada con MCP Inspector | done — verificado en producción (140 tools catalogadas, aislamiento confirmado vía MCP Inspector CLI) |
 | 4.3 | mcp-tools-restringidas | Confirmación explícita para acciones irreversibles del MCP (re-scope 2026-09-13, ver nota) | ready-for-dev |
-| 4.4 | auditoria-cobertura-tools-mcp | Auditar qué funciones de Firefly III cubre el MCP "de fábrica" vs. qué falta exponer a mano | backlog `# COURSE-CORRECTION 2026-09-13` |
+| 4.4 | auditoria-cobertura-tools-mcp | Auditar qué funciones de Firefly III cubre el MCP "de fábrica" vs. qué falta exponer a mano | ready-for-dev |
 
 **Cross-epic dependencies:**
 - Blocked by: Epic 1 (necesita el mecanismo de PAT por-request), Epic 3 (valida conectividad a Firefly primero).

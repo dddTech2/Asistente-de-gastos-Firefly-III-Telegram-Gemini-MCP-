@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-13T09:00:00Z"
+last_updated: "2026-09-13T10:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -308,7 +308,7 @@ stories:
 - id: "4.2.mcp-inspector-test"
   title: "Probar el MCP de forma aislada con MCP Inspector"
   epic_id: "epic-4"
-  status: ready-for-dev
+  status: done
   file: "bmad-output/stories/4.2.mcp-inspector-test.story.md"
   parallel_set: 9
   dependencies:
@@ -319,7 +319,7 @@ stories:
 - id: "4.3.mcp-tools-restringidas"
   title: "Confirmación explícita para acciones irreversibles del MCP (re-scope 2026-09-13)"
   epic_id: "epic-4"
-  status: backlog
+  status: ready-for-dev
   file: "bmad-output/stories/4.3.mcp-tools-restringidas.story.md"
   parallel_set: 10
   dependencies:
@@ -331,7 +331,7 @@ stories:
 - id: "4.4.auditoria-cobertura-tools-mcp"
   title: "Auditoría de cobertura de tools del MCP frente al catálogo completo de Firefly III"
   epic_id: "epic-4"
-  status: "backlog  # COURSE-CORRECTION 2026-09-13"
+  status: ready-for-dev   # desbloqueada 2026-09-13: sus 2 dependencias (4.1, 4.2) ya estan done
   file: "bmad-output/stories/4.4.auditoria-cobertura-tools-mcp.story.md"
   parallel_set: 11   # bmad-sprint-planning: computado en wave 10 (max(4.1=8,4.2=9)+1), subido a 11 para evitar colision de owned_scope con 4.3 (mcp/README.md) en la misma wave -- sin costo aguas abajo, ya que 5.1=11 domina igual
   dependencies:
@@ -737,10 +737,11 @@ sequencing_summary:
   - 1
   - 1
   ready_for_dev:
-    count: 7
+    count: 8
     story_ids:
     - "0.4.backups-automaticos"
-    - "4.2.mcp-inspector-test"
+    - "4.3.mcp-tools-restringidas"
+    - "4.4.auditoria-cobertura-tools-mcp"
     - "6.1.webhook-dedup-update-id"
     - "7.1.waterfly-conexion-pat"
     - "8.3.rotacion-secretos"
@@ -795,4 +796,17 @@ sequencing_summary:
     \ Consecuencia de dependencias: 4.2 (mcp-inspector-test) queda desbloqueada\
     \ (su unica dependencia era 4.1) y pasa a ready-for-dev. 4.3 sigue backlog\
     \ (depende de 4.2, no directamente de 4.1). ready_for_dev actualizado: 0.4,\
-    \ 4.2, 6.1, 7.1, 8.3, 8.4, 8.5."
+    \ 4.2, 6.1, 7.1, 8.3, 8.4, 8.5.\n\
+     ACTUALIZACION 2026-09-13T10:00:00Z: 4.2 (mcp-inspector-test) CERRADA done --\
+    \ sesion de pruebas con MCP Inspector CLI (no curl) contra mcp-firefly en\
+    \ produccion: catalogo de 140 tools clasificado en mcp/tools-inventory.md\
+    \ (84 lectura, 37 escritura no destructiva, 3 automatizacion con efecto de\
+    \ escritura, 16 destructivas); get_accounts (lectura) y create_transaction\
+    \ (escritura) ejecutados con exito con el PAT del usuario de prueba A contra\
+    \ la cuenta real; mismo get_accounts con el PAT del usuario B devolvio 0\
+    \ cuentas, confirmando aislamiento a traves del protocolo MCP completo.\
+    \ Consecuencia de dependencias: 4.3 (mcp-tools-restringidas, unica dependencia\
+    \ 4.2) y 4.4 (auditoria-cobertura-tools-mcp, dependencias 4.1+4.2, ambas ya\
+    \ done) quedan desbloqueadas y pasan a ready-for-dev. Epic 4 sigue in-progress\
+    \ (4.3 y 4.4 pendientes). ready_for_dev actualizado: 0.4, 4.3, 4.4, 6.1, 7.1,\
+    \ 8.3, 8.4, 8.5."

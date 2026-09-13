@@ -99,3 +99,31 @@ la respuesta cambia (cuentas de B, no de A) — igual que se hizo para
 descartar el primer candidato, pero esta vez esperando que SÍ cambie.
 Después `docker logs mcp-firefly` para confirmar que ningún PAT quedó en
 texto plano.
+
+## Sesión de pruebas con MCP Inspector (historia 4.2)
+
+Ejercitada con el **cliente CLI** de `@modelcontextprotocol/inspector` (no solo `curl`),
+que replica exactamente cómo el Bot Service invocará el MCP en Epic 5: header
+`Authorization` por-request, sin ningún token fijado en el propio Inspector.
+
+```bash
+npx @modelcontextprotocol/inspector --cli --server-url http://127.0.0.1:${MCP_FIREFLY_PORT:-3100}/mcp \
+  --transport http --header "Authorization: Bearer <PAT>" \
+  --method tools/list --format json
+```
+
+- **Conexión y catálogo (AC #1-#3):** el handshake conecta sin errores; `tools/list`
+  devuelve 140 tools. Catálogo completo clasificado (lectura / escritura / automatización
+  / destructivas) en [`tools-inventory.md`](./tools-inventory.md) — es el insumo directo
+  de la historia 4.3 (decide qué requiere confirmación explícita).
+- **Lectura + escritura (AC #4):** `get_accounts` (lectura) y `create_transaction`
+  (escritura) ejecutados con el PAT del usuario de prueba A contra la cuenta real
+  `id: "1"` — la transacción quedó creada en Firefly III (`id: "4"`). Detalle en
+  `tools-inventory.md`.
+- **Aislamiento (AC #5):** el mismo `get_accounts`, con el PAT de un segundo usuario de
+  prueba, devolvió `"data": [], "total": 0` — mismo patrón de aislamiento por-request que
+  4.1, ahora confirmado a través del protocolo MCP completo (Inspector), no solo `curl`.
+- **Manejo de errores:** una tool inexistente devuelve un error JSON-RPC legible sin
+  crashear el servidor (`tool_not_found`, exit code 5 en el CLI); un PAT inválido/vacío
+  devuelve `isError: true` con el error de autenticación de Firefly III reenviado tal
+  cual — sin fallback a ningún token fijo.
