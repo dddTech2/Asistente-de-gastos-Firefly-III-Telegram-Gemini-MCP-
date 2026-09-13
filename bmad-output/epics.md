@@ -156,7 +156,7 @@ comandos rígidos, antes de meter la capa de IA.
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 4.1 | mcp-multitenant-deploy | Desplegar el MCP de Firefly III en modo multi-tenant | ready-for-dev |
+| 4.1 | mcp-multitenant-deploy | Desplegar el MCP de Firefly III en modo multi-tenant | backlog — bloqueada 2026-09-13, ver `sprint-status.yaml` y Dev Agent Record (candidato evaluado no soporta credenciales por-request) |
 | 4.2 | mcp-inspector-test | Probar el MCP de forma aislada con MCP Inspector | ready-for-dev |
 | 4.3 | mcp-tools-restringidas | Confirmación explícita para acciones irreversibles del MCP (re-scope 2026-09-13, ver nota) | ready-for-dev |
 | 4.4 | auditoria-cobertura-tools-mcp | Auditar qué funciones de Firefly III cubre el MCP "de fábrica" vs. qué falta exponer a mano | backlog `# COURSE-CORRECTION 2026-09-13` |

@@ -293,7 +293,7 @@ stories:
 - id: "4.1.mcp-multitenant-deploy"
   title: "Desplegar el MCP de Firefly III en modo multi-tenant"
   epic_id: "epic-4"
-  status: in-progress
+  status: "backlog  # BLOQUEADA 2026-09-13 -- AC #1 no se cumple con @firefly-iii-mcp/server (ignora credenciales por-header, verificado empiricamente). Requiere decision de planning: candidato alternativo o MCP propio. Ver Dev Agent Record."
   file: "bmad-output/stories/4.1.mcp-multitenant-deploy.story.md"
   parallel_set: 8
   dependencies:
@@ -775,4 +775,15 @@ sequencing_summary:
     \ de dependencias: 4.1 (mcp-multitenant-deploy) queda desbloqueada (sus 4\
     \ dependencias -- 0.1, 1.4, 1.5, 3.2 -- ya estan done) y pasa a ready-for-dev.\
     \ ready_for_dev actualizado: 0.4, 4.1, 6.1, 7.1, 8.3, 8.4, 8.5 (3.2 removida\
-    \ por estar done, 4.1 agregada)."
+    \ por estar done, 4.1 agregada).\n\
+    \ ACTUALIZACION 2026-09-13T07:00:00Z: 4.1 (mcp-multitenant-deploy) BLOQUEADA\
+    \ tras verificacion empirica en la VPS -- el candidato evaluado\
+    \ (@firefly-iii-mcp/server v1.4.0) ignora las credenciales por-header pese\
+    \ a documentarlas (README del upstream describe un comportamiento que el\
+    \ codigo de esa version no implementa) y usa siempre el PAT/URL fijo del\
+    \ arranque, confirmado sirviendo una cuenta real de produccion con headers\
+    \ de Authorization/X-Firefly-III-Url invalidos. AC #1 de la historia exige\
+    \ detenerse en este caso -- no se despliega un MCP mono-tenant. 4.1 vuelve\
+    \ a backlog (removida de ready_for_dev), pendiente de decision de planning:\
+    \ candidato alternativo (ej. daften/fireflyiii-mcp) o MCP propio en Node/TS.\
+    \ 4.2 y 4.3, que dependen de 4.1, siguen bloqueadas transitivamente."

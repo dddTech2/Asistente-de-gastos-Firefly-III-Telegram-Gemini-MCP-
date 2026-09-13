@@ -116,21 +116,22 @@ services:
       timeout: 5s
       retries: 10
 
+  # BLOQUEADO (historia 4.1, 2026-09-13): @firefly-iii-mcp/server ignora las
+  # credenciales por-header pese a documentarlas -- verificado empíricamente
+  # que usa siempre el PAT/URL fijo del arranque (ver mcp/README.md y el Dev
+  # Agent Record de 4.1). NO levantar este servicio con FIREFLY_III_PAT/
+  # FIREFLY_III_BASE_URL reales: serviría los datos de una sola cuenta a
+  # los ~50 usuarios. Se deja definido solo como referencia de que el
+  # despliegue Docker en sí funciona, a la espera de un candidato/enfoque
+  # alternativo.
   mcp-firefly:
     build:
       context: ../mcp
       dockerfile: Dockerfile
     container_name: mcp-firefly
     restart: unless-stopped
-    # Deliberadamente SIN env_file/FIREFLY_III_PAT/FIREFLY_III_BASE_URL: este
-    # servicio es multi-tenant por-request (historia 4.1) -- cada llamada
-    # trae su propio PAT y URL por header (Authorization / X-Firefly-III-Url,
-    # ver mcp/README.md). Fijar esas variables acá lo volvería mono-tenant.
-    #
-    # Publicado solo en 127.0.0.1 -- el Bot Service (proceso pm2 en el host,
-    # no un contenedor de este compose) lo alcanza por localhost, igual que
-    # bot-postgres/bot-redis. Nunca en 0.0.0.0: no hay caso de uso donde deba
-    # ser accesible desde Internet.
+    # Deliberadamente SIN env_file/FIREFLY_III_PAT/FIREFLY_III_BASE_URL: la
+    # intención original era multi-tenant por-request -- ver bloqueo arriba.
     ports:
       - "127.0.0.1:${MCP_FIREFLY_PORT:-3100}:3000"
     networks:

@@ -1,4 +1,20 @@
-# MCP de Firefly III (historia 4.1)
+# MCP de Firefly III (historia 4.1) — BLOQUEADA, NO USAR EN PRODUCCIÓN
+
+> **⚠️ Este servicio NO logra aislamiento multi-tenant.** Verificado
+> empíricamente el 2026-09-13: `@firefly-iii-mcp/server` v1.4.0 ignora por
+> completo los headers `Authorization`/`X-Firefly-III-Url` de cada request y
+> usa siempre el PAT/URL fijados al arrancar el contenedor (confirmado
+> mandando headers con basura y recibiendo igual una cuenta real de
+> producción). El README público del proyecto upstream promete un modo
+> "por-header" que el código de esta versión no implementa. **No desplegar
+> este contenedor con un PAT real contra la instancia de producción** — ver
+> el Dev Agent Record de `bmad-output/stories/4.1.mcp-multitenant-deploy.story.md`
+> para el detalle completo y las alternativas en evaluación.
+
+Lo que sigue describe el diseño **original, invalidado** — se deja como
+referencia de qué se intentó y por qué no sirve, no como instrucción de uso.
+
+---
 
 Servidor MCP de terceros ([`@firefly-iii-mcp/server`](https://github.com/etnperlong/firefly-iii-mcp),
 v1.4.0) desplegado en modo **multi-tenant por-request**: el contenedor no
