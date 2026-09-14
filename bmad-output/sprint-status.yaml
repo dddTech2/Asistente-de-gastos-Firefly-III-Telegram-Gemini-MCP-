@@ -11,7 +11,7 @@
 project_name: "Asistente de gastos (Firefly III + Telegram + Gemini + MCP)"
 track: "BMad Method"
 generated_at: "2026-09-11T21:57:17Z"
-last_updated: "2026-09-13T17:00:00Z"
+last_updated: "2026-09-13T18:00:00Z"
 epics:
 - id: "epic-0"
   title: "Infraestructura base"
@@ -103,6 +103,7 @@ epics:
   - "8.4.alertas-caida-servicio"
   - "8.5.prueba-carga-50-usuarios"
   - "8.6.ejecucion-reporte-prueba-carga"
+  - "8.7.auditoria-tokens-gemini"
 - id: "epic-10"
   title: "Cuenta y sistema vía chat"
   description: "# COURSE-CORRECTION 2026-09-13 -- agregada integramente por la correccion de rumbo"
@@ -685,6 +686,23 @@ stories:
   owned_scope:
   - "scripts/load-test/k6-scenario-50-usuarios.js"
   - "docs/reports/prueba-carga-50-usuarios-resultados.md"
+- id: "8.7.auditoria-tokens-gemini"
+  title: "Auditoría de tokens de Gemini por conversación y por mes"
+  epic_id: "epic-8"
+  status: done   # agregada y cerrada 2026-09-13, ad-hoc a pedido explicito del usuario -- ver decision-log.md
+  file: "bmad-output/stories/8.7.auditoria-tokens-gemini.story.md"
+  parallel_set: 17
+  dependencies:
+  - "5.1.prompt-tools-gemini"
+  - "1.4.pat-cifrado-postgres"
+  owned_scope:
+  - "bot-service/src/db/migrations/0003_create_log_uso_tokens_gemini.sql"
+  - "bot-service/src/gemini/usoTokens.ts"
+  - "bot-service/src/db/usoTokensGemini.repository.ts"
+  - "bot-service/scripts/reporte-tokens.ts"
+  - "bot-service/src/handlers/messageOrchestrator.ts"
+  - "bot-service/src/server.ts"
+  - "bot-service/src/index.ts"
 - id: "10.1.preferencias-via-chat"
   title: "Ver y cambiar preferencias de Firefly III desde el chat"
   epic_id: "epic-10"
@@ -757,8 +775,8 @@ stories:
   - "bot-service/src/commands/importar.ts"
 sequencing_summary:
   total_epics: 10
-  total_stories: 51   # +1 (5.13) +1 (5.14), ambas agregadas 2026-09-13 -- gaps de planning, ver decision-log
-  total_waves: 16   # recalculado 2026-09-13 (bmad-sprint-planning, post COURSE-CORRECTION) -- las 14 historias nuevas entraron en waves ya existentes, no sumaron waves nuevas
+  total_stories: 52   # +1 (5.13) +1 (5.14) +1 (8.7), las tres agregadas 2026-09-13 -- ver decision-log
+  total_waves: 17   # +1 (8.7, wave nueva -- sus dependencias ya estaban done, se le asigno la primera wave libre)
   wave_widths:
   - 1
   - 2
@@ -776,6 +794,7 @@ sequencing_summary:
   - 2
   - 1
   - 1
+  - 1   # +1 (8.7, agregada 2026-09-13)
   ready_for_dev:
     count: 14
     story_ids:
@@ -950,4 +969,17 @@ sequencing_summary:
     \ geminiMessageHandler.ts actualizado para el nuevo retorno string|null. 27 tests (17+4+6).\
     \ El riesgo de seguridad detectado en 5.13 queda resuelto: ninguna tool destructiva se ejecuta\
     \ sin que el usuario confirme por boton. total_stories 50->51, wave 13 2->3. ready_for_dev sin\
-    \ cambios (14) -- ninguna historia declarada depende de 5.14."
+    \ cambios (14) -- ninguna historia declarada depende de 5.14.\n\n2026-09-13T17:30:00Z -- BUG DE\
+    \ PRODUCCION corregido (no es un gap de planning, defecto real dentro del alcance ya cerrado de\
+    \ 5.1/5.14): tras asociar el PAT de un usuario real, la primera tool call real fallaba con 400\
+    \ INVALID_ARGUMENT (\"missing a thought_signature\") porque messageOrchestrator.agregarResultadoTool\
+    \ reconstruia a mano el Content del rol \"model\" en vez de reusar el que devuelve Gemini (que trae\
+    \ el thoughtSignature que exige el modelo con thinking). Corregido reusando respuesta.candidates[0].content,\
+    \ con fallback defensivo. 2 tests nuevos. No afecta ninguna historia del sprint (fix directo, sin\
+    \ historia nueva).\n\n2026-09-13T18:00:00Z -- 8.7 (auditoria-tokens-gemini) agregada y cerrada en\
+    \ la misma sesion, a pedido explicito del usuario: tabla log_uso_tokens_gemini (migracion 0003) +\
+    \ usoTokens.ts (extrae GenerateContentResponse.usageMetadata, nunca antes leido) + repositorio con\
+    \ resumenPorChat/resumenPorRango + registrarUsoTokens enganchado fail-safe (no fail-loud, a diferencia\
+    \ de 5.14) en cada ronda real de ejecutarRondas + scripts/reporte-tokens.ts (CLI). 14 tests nuevos.\
+    \ total_stories 51->52, wave nueva 17 (ancho 1). ready_for_dev sin cambios (14) -- ninguna historia\
+    \ declarada depende de 8.7."

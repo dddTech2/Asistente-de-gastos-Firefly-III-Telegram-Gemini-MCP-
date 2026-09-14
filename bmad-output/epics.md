@@ -293,6 +293,7 @@ la arquitectura aguanta 50 usuarios concurrentes antes de invitarlos a todos.
 | 8.4 | alertas-caida-servicio | Alertas si el bot o Firefly III se caen | ready-for-dev |
 | 8.5 | prueba-carga-50-usuarios | Preparar entorno y cuentas sintéticas para la prueba de carga | ready-for-dev |
 | 8.6 | ejecucion-reporte-prueba-carga | Ejecutar la prueba de carga de 50 usuarios y producir el reporte de veredicto | ready-for-dev |
+| 8.7 | auditoria-tokens-gemini | Auditoría de tokens de Gemini por conversación y por mes (agregada ad-hoc 2026-09-13, a pedido del usuario) | done |
 
 **Cross-epic dependencies:**
 - Blocked by: Epic 0 (8.1-8.4 son transversales, pueden empezar temprano); 8.5 (la prueba de carga) está bloqueada por Epic 1, 4, 5 y 6 — es la validación end-to-end de la apuesta arquitectónica completa.

@@ -8,14 +8,15 @@ const CHAT_ID = 999;
 const PAT = "pat-de-prueba";
 const FECHA_FIJA = new Date("2026-09-13T12:00:00.000Z");
 
-function respuestaTexto(texto: string): GenerateContentResponse {
-  return { functionCalls: undefined, text: texto } as unknown as GenerateContentResponse;
+function respuestaTexto(texto: string, usageMetadata?: Record<string, unknown>): GenerateContentResponse {
+  return { functionCalls: undefined, text: texto, usageMetadata } as unknown as GenerateContentResponse;
 }
 
 function respuestaConFunctionCall(
   name: string,
   args: Record<string, unknown>,
   thoughtSignature?: string,
+  usageMetadata?: Record<string, unknown>,
 ): GenerateContentResponse {
   const parte: Record<string, unknown> = { functionCall: { name, args } };
   if (thoughtSignature !== undefined) {
@@ -25,6 +26,7 @@ function respuestaConFunctionCall(
     functionCalls: [{ name, args }],
     text: undefined,
     candidates: [{ content: { role: "model", parts: [parte] } }],
+    usageMetadata,
   } as unknown as GenerateContentResponse;
 }
 
@@ -369,5 +371,80 @@ describe("confirmación de acciones irreversibles (historia 5.14)", () => {
 
     await expect(orquestador.procesarMensaje(CHAT_ID, "borrá la transacción 1")).rejects.toThrow(/confirmador/);
     expect(ejecutarTool).not.toHaveBeenCalled();
+  });
+});
+
+describe("auditoría de tokens de Gemini (historia 8.7)", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("registra el uso de tokens de cada ronda real a Gemini (AC #2)", async () => {
+    const registrarUsoTokens = vi.fn().mockResolvedValue(undefined);
+    const { deps, generarRespuesta, ejecutarTool } = buildDeps({ registrarUsoTokens });
+    generarRespuesta
+      .mockResolvedValueOnce(
+        respuestaConFunctionCall("get_accounts", {}, undefined, {
+          promptTokenCount: 100,
+          candidatesTokenCount: 20,
+          totalTokenCount: 120,
+        }),
+      )
+      .mockResolvedValueOnce(
+        respuestaTexto("listo", { promptTokenCount: 150, candidatesTokenCount: 30, totalTokenCount: 180 }),
+      );
+    ejecutarTool.mockResolvedValue({ contenido: "ok", esError: false });
+
+    const orquestador = createMessageOrchestrator(deps);
+    await orquestador.procesarMensaje(CHAT_ID, "qué cuentas tengo?");
+
+    expect(registrarUsoTokens).toHaveBeenCalledTimes(2);
+    expect(registrarUsoTokens).toHaveBeenNthCalledWith(1, CHAT_ID, {
+      promptTokens: 100,
+      candidatesTokens: 20,
+      thoughtsTokens: 0,
+      toolTokens: 0,
+      totalTokens: 120,
+    });
+    expect(registrarUsoTokens).toHaveBeenNthCalledWith(2, CHAT_ID, {
+      promptTokens: 150,
+      candidatesTokens: 30,
+      thoughtsTokens: 0,
+      toolTokens: 0,
+      totalTokens: 180,
+    });
+  });
+
+  it("no registra nada si la respuesta de Gemini no trae usageMetadata", async () => {
+    const registrarUsoTokens = vi.fn().mockResolvedValue(undefined);
+    const { deps, generarRespuesta } = buildDeps({ registrarUsoTokens });
+    generarRespuesta.mockResolvedValue(respuestaTexto("hola"));
+
+    const orquestador = createMessageOrchestrator(deps);
+    await orquestador.procesarMensaje(CHAT_ID, "hola");
+
+    expect(registrarUsoTokens).not.toHaveBeenCalled();
+  });
+
+  it("un error al registrar el uso de tokens no corta el ciclo ni cambia la respuesta final (AC #3)", async () => {
+    const registrarUsoTokens = vi.fn().mockRejectedValue(new Error("Postgres caído"));
+    const { deps, generarRespuesta } = buildDeps({ registrarUsoTokens });
+    generarRespuesta.mockResolvedValue(respuestaTexto("respuesta final", { totalTokenCount: 50 }));
+
+    const orquestador = createMessageOrchestrator(deps);
+    const resultado = await orquestador.procesarMensaje(CHAT_ID, "hola");
+
+    expect(resultado).toBe("respuesta final");
+    expect(registrarUsoTokens).toHaveBeenCalledTimes(1);
+  });
+
+  it("sin `registrarUsoTokens` configurado, el orquestador funciona exactamente igual que antes de esta historia", async () => {
+    const { deps, generarRespuesta } = buildDeps();
+    generarRespuesta.mockResolvedValue(respuestaTexto("hola", { totalTokenCount: 50 }));
+
+    const orquestador = createMessageOrchestrator(deps);
+    const resultado = await orquestador.procesarMensaje(CHAT_ID, "hola");
+
+    expect(resultado).toBe("hola");
   });
 });

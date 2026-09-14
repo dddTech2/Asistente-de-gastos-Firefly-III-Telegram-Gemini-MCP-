@@ -1,7 +1,8 @@
-import type { Content } from "@google/genai";
+import type { Content, GenerateContentResponse } from "@google/genai";
 import type { GeminiClient } from "../gemini/geminiClient.js";
 import { construirContents, construirSystemPrompt } from "../gemini/promptBuilder.js";
 import { adaptarToolsDeMcpAGemini } from "../gemini/toolDeclarationsAdapter.js";
+import { extraerUsoTokens, type UsoTokensGemini } from "../gemini/usoTokens.js";
 import { clasificarToolCall } from "../mcp/toolClassification.js";
 import { resumirAccionIrreversible } from "../mcp/resumenAccionIrreversible.js";
 import type { McpToolExecutor, ResultadoTool } from "../mcp/mcpToolExecutor.js";
@@ -32,6 +33,13 @@ export interface MessageOrchestratorDeps {
   confirmador?: ConfirmadorAccionIrreversible;
   /** Historia 5.14. Envía la respuesta final al usuario cuando se completó tras una confirmación (procesarMensaje ya había devuelto `null` antes). */
   enviarMensaje?: (chatId: number, texto: string) => Promise<void>;
+  /**
+   * Historia 8.7. Opcional y fail-safe (a diferencia de `confirmador`/`enviarMensaje`,
+   * que son fail-LOUD porque hacen a la seguridad/corrección): observabilidad de
+   * costo, no una garantía que deba tumbar el ciclo si falla o no está configurada.
+   * Se invoca una vez por cada llamada real a Gemini dentro de `ejecutarRondas`.
+   */
+  registrarUsoTokens?: (chatId: number, uso: UsoTokensGemini) => Promise<void>;
   /** Inyectable para tests -- default `() => new Date()`. */
   ahora?: () => Date;
 }
@@ -75,6 +83,35 @@ async function obtenerHistorialSeguro(historyStore: HistoryStore, chatId: number
       "No se pudo leer el historial de conversación, se continúa sin historial previo",
     );
     return [];
+  }
+}
+
+/**
+ * Historia 8.7: nunca deja que un fallo al registrar el uso de tokens (o la
+ * ausencia de la dependencia, en tests que no la necesitan) afecte la
+ * respuesta al usuario -- mismo criterio fail-safe que `obtenerHistorialSeguro`/
+ * `guardarMensajeSeguro` de arriba, deliberadamente OPUESTO al fail-loud de
+ * `confirmador`/`enviarMensaje` (ver comentario en `MessageOrchestratorDeps`).
+ */
+async function registrarUsoTokensSeguro(
+  registrarUsoTokens: ((chatId: number, uso: UsoTokensGemini) => Promise<void>) | undefined,
+  chatId: number,
+  respuesta: GenerateContentResponse,
+): Promise<void> {
+  if (!registrarUsoTokens) {
+    return;
+  }
+  const uso = extraerUsoTokens(respuesta);
+  if (!uso) {
+    return;
+  }
+  try {
+    await registrarUsoTokens(chatId, uso);
+  } catch (error) {
+    logger.warn(
+      { chat_id: chatId, err: error instanceof Error ? error : new Error(String(error)) },
+      "No se pudo registrar el uso de tokens de Gemini para esta llamada",
+    );
   }
 }
 
@@ -158,6 +195,7 @@ export function createMessageOrchestrator(deps: MessageOrchestratorDeps): Messag
 
     for (let ronda = rondaInicial; ronda < MAX_RONDAS_TOOL_CALL; ronda++) {
       const respuesta = await deps.geminiClient.generarRespuesta({ systemInstruction, contents, tools });
+      await registrarUsoTokensSeguro(deps.registrarUsoTokens, chatId, respuesta);
       const functionCalls = respuesta.functionCalls;
 
       if (!functionCalls || functionCalls.length === 0) {

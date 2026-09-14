@@ -19,6 +19,29 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-13 — Nueva historia 8.7 agregada y cerrada: auditoría de tokens de Gemini por conversación y por mes
+- **Decision:** se agrega `8.7.auditoria-tokens-gemini` a Épica 8, se implementa y se cierra en la
+  misma sesión, a pedido explícito del usuario. Tabla nueva `log_uso_tokens_gemini` en Postgres
+  (migración `0003`), función pura `extraerUsoTokens` que lee `GenerateContentResponse.usageMetadata`
+  (nunca antes leído en el proyecto), repositorio con `resumenPorChat`/`resumenPorRango`, enganchado en
+  `messageOrchestrator.ejecutarRondas` de forma FAIL-SAFE (no fail-loud), y un CLI
+  (`scripts/reporte-tokens.ts`) para consultar el consumo agregado sin escribir SQL a mano.
+- **Rationale:** el usuario preguntó explícitamente si había alguna auditoría de tokens de
+  entrada/salida por interacción -- no la había, pese a que el SDK de Gemini (`@google/genai`)
+  expone esa metadata en cada respuesta real. Se decidió persistir en Postgres (no solo loguear)
+  porque el pedido explícito fue poder auditar "por conversación" y "por mes" de forma confiable,
+  algo que grep sobre logs de stdout no garantiza a mediano plazo. Se usa el patrón fail-safe
+  (igual que `obtenerHistorialSeguro`/`guardarMensajeSeguro` de 5.1) y NO el patrón fail-loud de
+  `confirmador`/`enviarMensaje` (5.14) porque esto es observabilidad de costo, no una garantía de
+  seguridad/corrección -- un fallo al registrar tokens nunca debe degradar la respuesta al usuario.
+  Se aprovechó la misma investigación para revisar cuánto historial de conversación se reenvía al
+  prompt (pregunta separada del mismo usuario): `historyStore.ts` ya limita a los últimos 20
+  mensajes con TTL de 24h, y solo persiste el texto final de cada turno (nunca las tool calls
+  intermedias) -- no se encontró ningún problema ahí, no se hizo ningún cambio sobre eso.
+- **Made by:** dev (pedido explícito del usuario en el chat de esta sesión)
+
+---
+
 ### 2026-09-13 — Bug de producción corregido: Gemini rechazaba la segunda ronda de tool-calling por falta de `thoughtSignature`
 - **Decision:** `messageOrchestrator.agregarResultadoTool` ahora reutiliza el `Content` REAL
   devuelto por Gemini (`respuesta.candidates[0].content`) al reenviar el historial en la

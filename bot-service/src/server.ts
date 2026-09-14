@@ -2,6 +2,7 @@ import express, { type Express } from "express";
 import { Bot } from "grammy";
 import type { CredentialResolver } from "./auth/credential-resolver.js";
 import type { HistoryStore } from "./conversation/historyStore.js";
+import type { UsoTokensGeminiRepository } from "./db/usoTokensGemini.repository.js";
 import type { UsuariosRepository } from "./db/usuarios.repository.js";
 import type { GeminiClient } from "./gemini/geminiClient.js";
 import { createMessageOrchestrator } from "./handlers/messageOrchestrator.js";
@@ -22,6 +23,7 @@ export interface ServerOptions {
   mcpToolExecutor: McpToolExecutor;
   historyStore: HistoryStore;
   credentialResolver: CredentialResolver;
+  usoTokensGeminiRepository: UsoTokensGeminiRepository;
 }
 
 /**
@@ -52,6 +54,7 @@ export async function createServer(options: ServerOptions): Promise<Express> {
         solicitarConfirmacion(bot, chatId, resumenAccion, ejecutar),
     },
     enviarMensaje: (chatId, texto) => sendTelegramMessage(bot, chatId, texto),
+    registrarUsoTokens: (chatId, uso) => options.usoTokensGeminiRepository.registrar(chatId, uso),
   });
 
   const app = express();

@@ -1,6 +1,7 @@
 import { createCredentialResolver } from "./auth/credential-resolver.js";
 import { env } from "./config/env.js";
 import { pool } from "./db/pool.js";
+import { createUsoTokensGeminiRepository } from "./db/usoTokensGemini.repository.js";
 import { createUsuariosRepository } from "./db/usuarios.repository.js";
 import { createHistoryStore } from "./conversation/historyStore.js";
 import { createGeminiClient } from "./gemini/geminiClient.js";
@@ -48,6 +49,7 @@ const app = await createServer({
   mcpToolExecutor: createMcpToolExecutor(env.mcpFireflyUrl),
   historyStore: createHistoryStore(redis),
   credentialResolver: createCredentialResolver({ usuariosRepository, fireflyUrl: env.fireflyBaseUrl }),
+  usoTokensGeminiRepository: createUsoTokensGeminiRepository(pool),
 });
 
 app.listen(env.port, () => {

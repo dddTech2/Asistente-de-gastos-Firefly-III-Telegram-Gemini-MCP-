@@ -11,7 +11,8 @@
     "test": "vitest run",
     "set-webhook": "tsx scripts/set-webhook.ts",
     "migrate": "tsx scripts/migrate.ts",
-    "alta-usuario": "tsx scripts/alta-usuario.ts"
+    "alta-usuario": "tsx scripts/alta-usuario.ts",
+    "reporte-tokens": "tsx scripts/reporte-tokens.ts"
   },
   "dependencies": {
     "@google/genai": "^2.22.0",
