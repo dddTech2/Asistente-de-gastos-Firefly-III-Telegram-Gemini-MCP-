@@ -148,7 +148,10 @@ describe("messageOrchestrator", () => {
     await orquestador.procesarMensaje(CHAT_ID, "hola");
 
     const primeraLlamada = generarRespuesta.mock.calls[0]![0] as { contents: unknown[] };
-    expect(primeraLlamada.contents).toEqual([{ role: "user", parts: [{ text: "hola" }] }]);
+    expect(primeraLlamada.contents).toEqual([
+      { role: "user", parts: [{ text: `Fecha y hora actual: ${FECHA_FIJA.toISOString()}` }] },
+      { role: "user", parts: [{ text: "hola" }] },
+    ]);
   });
 
   it("guarda el mensaje del usuario y la respuesta final en el historial", async () => {

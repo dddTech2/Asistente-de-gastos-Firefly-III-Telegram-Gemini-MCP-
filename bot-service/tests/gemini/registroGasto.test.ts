@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { GenerateContentResponse } from "@google/genai";
-import { construirSystemPrompt } from "../../src/gemini/promptBuilder.js";
+import { construirSystemPromptEstable } from "../../src/gemini/promptBuilder.js";
 import { FRAGMENTO_PROMPT_REGISTRO_GASTO } from "../../src/gemini/prompts/registroGasto.prompt.js";
 import { createMessageOrchestrator, type MessageOrchestratorDeps } from "../../src/handlers/messageOrchestrator.js";
 import type { HistorialMensaje } from "../../src/conversation/historyStore.js";
@@ -27,7 +27,7 @@ describe("fragmento de prompt de registro de gasto (AC #1, #2)", () => {
   });
 
   it("está incluido en el system prompt armado por promptBuilder", () => {
-    const prompt = construirSystemPrompt(FECHA_FIJA);
+    const prompt = construirSystemPromptEstable();
     expect(prompt).toContain(FRAGMENTO_PROMPT_REGISTRO_GASTO);
   });
 });

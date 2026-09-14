@@ -31,11 +31,11 @@ export interface GeminiClientOpciones {
   ai?: ClienteGeminiSdk;
   /** Inyectable para tests -- default `() => Date.now()`. */
   ahora?: () => number;
-  /** TTL del cache de tools, en segundos -- default 1h. */
+  /** TTL del cache de contexto, en segundos -- default 24h (`systemInstruction`+`tools` no cambian de contenido de una llamada a otra, ver comentario abajo). */
   ttlCacheSegundos?: number;
 }
 
-const TTL_CACHE_SEGUNDOS_DEFAULT = 3600;
+const TTL_CACHE_SEGUNDOS_DEFAULT = 24 * 60 * 60;
 /**
  * Margen de seguridad para renovar el cache ANTES de que Gemini lo expire de
  * verdad del lado del servidor -- evita una carrera donde el cache vence a
@@ -43,7 +43,7 @@ const TTL_CACHE_SEGUNDOS_DEFAULT = 3600;
  */
 const MARGEN_EXPIRACION_MS = 60_000;
 
-interface CacheDeTools {
+interface CacheDeContexto {
   nombre: string;
   huella: string;
   expiraEn: number;
@@ -52,19 +52,23 @@ interface CacheDeTools {
 /**
  * Optimización de costo (no pedida por ningún AC, ver decision-log.md): el
  * catálogo de tools del MCP de Firefly III (140 tools, ~20-25K tokens de JSON
- * Schema) es IDÉNTICO entre usuarios -- no depende del PAT, solo de qué tools
- * existe -- y entre las N rondas del mismo ciclo de tool-calling
- * (`messageOrchestrator.ejecutarRondas` reusa el mismo `tools` en todas). Es
- * el candidato perfecto para el context caching explícito de Gemini
- * (`ai.caches.create`), que cobra los tokens cacheados a una fracción del
- * precio normal de entrada.
+ * Schema) es IDÉNTICO entre usuarios -- no depende del PAT -- y entre las N
+ * rondas del mismo ciclo de tool-calling (`messageOrchestrator.ejecutarRondas`
+ * reusa el mismo `tools` en todas). Es el candidato perfecto para el context
+ * caching explícito de Gemini (`ai.caches.create`), que cobra los tokens
+ * cacheados a una fracción del precio normal de entrada.
  *
- * Se cachea SOLO `tools`, nunca `systemInstruction`: `systemInstruction`
- * cambia de contenido en cada llamada porque `construirSystemPrompt` inyecta
- * la fecha/hora actual -- cachearlo requeriría separar esa parte dinámica del
- * resto, un cambio de mayor alcance que queda fuera de esta optimización
- * puntual (y el system prompt, unos pocos párrafos, es una fracción mínima
- * del costo real frente a las 140 tools).
+ * Se cachea `systemInstruction` JUNTO CON `tools`, nunca por separado: la API
+ * de Gemini rechaza con `400 INVALID_ARGUMENT` cualquier request que use
+ * `cachedContent` y ADEMÁS especifique `system_instruction`, `tools` o
+ * `tool_config` directo -- "CachedContent can not be used with
+ * GenerateContent request setting system_instruction, tools or tool_config"
+ * [bug real de producción detectado al desplegar la primera versión de este
+ * caching, ver decision-log.md]. Por eso `promptBuilder.construirSystemPromptEstable`
+ * (a diferencia de la vieja `construirSystemPrompt`) nunca incluye la
+ * fecha/hora actual -- esa parte dinámica viaja como el primer turno de
+ * `contents` (`construirLineaFechaActual`), que sí se manda fresco en cada
+ * llamada sin romper el cache.
  *
  * CRÍTICO: cuando `tools` viene vacío (`[]` -- la llamada final forzada sin
  * tools del fix de "no pude terminar tu pedido" en `messageOrchestrator.ts`)
@@ -74,8 +78,8 @@ interface CacheDeTools {
  *
  * Fail-safe: si crear/renovar el cache falla (modelo sin soporte, umbral
  * mínimo de tokens no alcanzado, etc.), se loguea un warning y se sigue
- * enviando el catálogo completo sin cachear -- nunca se corta la respuesta al
- * usuario por esto.
+ * enviando `systemInstruction`+`tools` directo sin cachear -- nunca se corta
+ * la respuesta al usuario por esto.
  */
 export function createGeminiClient(
   apiKey: string,
@@ -86,14 +90,17 @@ export function createGeminiClient(
   const ahora = opciones.ahora ?? (() => Date.now());
   const ttlCacheSegundos = opciones.ttlCacheSegundos ?? TTL_CACHE_SEGUNDOS_DEFAULT;
 
-  let cache: CacheDeTools | null = null;
+  let cache: CacheDeContexto | null = null;
 
-  async function obtenerCacheDeTools(tools: FunctionDeclaration[]): Promise<string | undefined> {
+  async function obtenerCacheDeContexto(
+    systemInstruction: string,
+    tools: FunctionDeclaration[],
+  ): Promise<string | undefined> {
     if (tools.length === 0) {
       return undefined;
     }
 
-    const huella = JSON.stringify(tools);
+    const huella = `${systemInstruction}::${JSON.stringify(tools)}`;
     const ahoraMs = ahora();
 
     if (cache && cache.huella === huella && cache.expiraEn > ahoraMs) {
@@ -103,7 +110,11 @@ export function createGeminiClient(
     try {
       const creado = await ai.caches.create({
         model: modelo,
-        config: { tools: [{ functionDeclarations: tools }], ttl: `${ttlCacheSegundos}s` },
+        config: {
+          systemInstruction,
+          tools: [{ functionDeclarations: tools }],
+          ttl: `${ttlCacheSegundos}s`,
+        },
       });
       if (!creado.name) {
         throw new Error("Gemini no devolvió un nombre de cache en la respuesta de caches.create");
@@ -113,7 +124,7 @@ export function createGeminiClient(
     } catch (error) {
       logger.warn(
         { err: error instanceof Error ? error : new Error(String(error)) },
-        "No se pudo crear/renovar el cache de tools de Gemini -- se sigue enviando el catálogo completo sin cachear",
+        "No se pudo crear/renovar el cache de contexto de Gemini -- se sigue enviando systemInstruction+tools sin cachear",
       );
       cache = null;
       return undefined;
@@ -122,19 +133,17 @@ export function createGeminiClient(
 
   return {
     async generarRespuesta({ systemInstruction, contents, tools }) {
-      const cachedContent = await obtenerCacheDeTools(tools);
+      const cachedContent = await obtenerCacheDeContexto(systemInstruction, tools);
 
       return ai.models.generateContent({
         model: modelo,
         contents,
-        config: {
-          systemInstruction,
-          ...(cachedContent
-            ? { cachedContent }
-            : tools.length > 0
-              ? { tools: [{ functionDeclarations: tools }] }
-              : {}),
-        },
+        config: cachedContent
+          ? { cachedContent }
+          : {
+              systemInstruction,
+              ...(tools.length > 0 ? { tools: [{ functionDeclarations: tools }] } : {}),
+            },
       });
     },
   };

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { GenerateContentResponse } from "@google/genai";
-import { construirSystemPrompt } from "../../src/gemini/promptBuilder.js";
+import { construirSystemPromptEstable } from "../../src/gemini/promptBuilder.js";
 import { FRAGMENTO_PROMPT_CONSULTA_GASTO } from "../../src/gemini/prompts/consultaGasto.prompt.js";
 import { resolverRangoFechas } from "../../src/gemini/dateRangeResolver.js";
 import { createMessageOrchestrator, type MessageOrchestratorDeps } from "../../src/handlers/messageOrchestrator.js";
@@ -31,7 +31,7 @@ describe("fragmento de prompt de consulta de gasto (AC #1, #2)", () => {
   });
 
   it("está incluido en el system prompt armado por promptBuilder", () => {
-    const prompt = construirSystemPrompt(FECHA_FIJA);
+    const prompt = construirSystemPromptEstable();
     expect(prompt).toContain(FRAGMENTO_PROMPT_CONSULTA_GASTO);
   });
 });

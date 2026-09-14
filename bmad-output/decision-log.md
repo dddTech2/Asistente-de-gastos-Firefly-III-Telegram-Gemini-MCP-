@@ -19,6 +19,33 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-13 — Bug de producción corregido (mismo día): el caching de tools rompía TODOS los mensajes con 400
+- **Decision:** el caching se corrige para cachear `systemInstruction` JUNTO CON `tools` (nunca por
+  separado), y `promptBuilder.construirSystemPromptEstable` deja de incluir la fecha/hora actual --
+  esa parte dinámica ahora viaja como el primer turno de `contents` (`construirLineaFechaActual`),
+  inyectado por `construirContents`.
+- **Rationale:** al desplegar la entrada anterior de este log ("context caching de las 140 tools de
+  Gemini"), el primer mensaje real en producción falló con `400 INVALID_ARGUMENT`: "CachedContent
+  can not be used with GenerateContent request setting system_instruction, tools or tool_config" --
+  un requisito duro de la API de Gemini que no estaba documentado en la investigación previa: cuando
+  se usa `cachedContent`, NINGUNO de esos tres campos puede especificarse además en la request
+  directa, ni siquiera si el cache no los incluye. La versión anterior cacheaba solo `tools` pero
+  seguía mandando `systemInstruction` fresco en cada llamada (porque tenía la fecha/hora embebida) --
+  eso rompía CADA mensaje, no un caso borde. Corregido moviendo la fecha/hora fuera de
+  `systemInstruction` (que ahora es 100% estable y se cachea completo junto con las tools) y hacia
+  `contents`, que sí puede variar libremente en cada llamada sin invalidar el cache. TTL del cache
+  subido de 1h a 24h ya que ahora el contenido cacheado genuinamente no cambia salvo que el catálogo
+  de tools cambie. 2 tests nuevos en `geminiClient.test.ts` (systemInstruction distinto -> cache
+  nuevo; nunca manda systemInstruction/tools junto con cachedContent) + `promptBuilder.test.ts` y
+  `messageOrchestrator.test.ts` actualizados a la nueva forma de `contents`.
+- **Supersedes:** la entrada de arriba ("Optimización de costo: context caching de las 140 tools de
+  Gemini"), cuyo diseño de caching (cachear solo `tools`) resultó incompatible con un requisito duro
+  de la API que no se había verificado empíricamente antes de desplegar.
+- **Made by:** dev (bug reportado en logs de producción por el usuario, mismo día del despliegue
+  anterior)
+
+---
+
 ### 2026-09-13 — Optimización de costo: context caching de las 140 tools de Gemini
 - **Decision:** `geminiClient.ts` cachea explícitamente las declaraciones de tools
   (`ai.caches.create`) y las referencia vía `cachedContent` en vez de reenviar el JSON Schema

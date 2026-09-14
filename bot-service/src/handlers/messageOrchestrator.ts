@@ -1,6 +1,6 @@
 import type { Content, GenerateContentResponse } from "@google/genai";
 import type { GeminiClient } from "../gemini/geminiClient.js";
-import { construirContents, construirSystemPrompt } from "../gemini/promptBuilder.js";
+import { construirContents, construirLineaFechaActual, construirSystemPromptEstable } from "../gemini/promptBuilder.js";
 import { adaptarToolsDeMcpAGemini } from "../gemini/toolDeclarationsAdapter.js";
 import { extraerUsoTokens, type UsoTokensGemini } from "../gemini/usoTokens.js";
 import { clasificarToolCall } from "../mcp/toolClassification.js";
@@ -287,9 +287,9 @@ export function createMessageOrchestrator(deps: MessageOrchestratorDeps): Messag
         deps.mcpToolExecutor.listarTools(pat),
       ]);
 
-      const systemInstruction = construirSystemPrompt(ahora());
+      const systemInstruction = construirSystemPromptEstable();
       const tools = adaptarToolsDeMcpAGemini(toolsMcp);
-      const contents: Content[] = construirContents(historial, mensajeUsuario);
+      const contents: Content[] = construirContents(historial, mensajeUsuario, construirLineaFechaActual(ahora()));
 
       logger.info({ chat_id: chatId, mensaje: mensajeUsuario }, "Mensaje del usuario recibido para Gemini");
 
