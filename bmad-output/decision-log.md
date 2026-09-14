@@ -19,6 +19,35 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-13 — Optimización de costo: context caching de las 140 tools de Gemini
+- **Decision:** `geminiClient.ts` cachea explícitamente las declaraciones de tools
+  (`ai.caches.create`) y las referencia vía `cachedContent` en vez de reenviar el JSON Schema
+  completo de las 140 tools del MCP de Firefly III en cada llamada. Cache compartido por proceso
+  (no por usuario/chat_id), TTL 1h con renovación perezosa al expirar o si el catálogo de tools
+  cambia (detectado por fingerprint). Se cachea SOLO `tools`, no `systemInstruction` (que cambia de
+  contenido en cada llamada por la fecha/hora inyectada). Si `tools` viene vacío -- la llamada final
+  forzada sin tools del fix de "no pude terminar tu pedido", ver entrada de abajo -- nunca se crea
+  ni se reutiliza cache, a propósito: reusar un cache con tools ahí resucitaría la posibilidad de que
+  Gemini pida otra tool call, deshaciendo ese fix. Si crear/renovar el cache falla, se degrada a
+  enviar las tools sin cachear (fail-safe, nunca corta la respuesta al usuario).
+- **Rationale:** el usuario reportó vía `reporte-tokens` (historia 8.7) que 4 llamadas de un mismo
+  mensaje consumieron 104.657 tokens de entrada. Investigación (con research de estrategias externas
+  -- ver fuentes en la respuesta al usuario) confirmó la causa: el catálogo completo de 140 tools de
+  Firefly III (84 lectura + 37 escritura + 3 automatización + 16 destructivas, historia 4.2) se
+  reenvía completo en cada una de las N rondas del mismo ciclo de tool-calling, sea o no relevante
+  para el mensaje. Se evaluaron 4 estrategias (búsqueda diferida de tools al estilo Anthropic Tool
+  Search, Tool RAG con embeddings, ruteo estático por categoría reusando la clasificación de 4.4, y
+  context caching); se eligió caching por ser la de menor riesgo/esfuerzo -- no cambia qué tools ve
+  Gemini (cero impacto en precisión de selección de tool, a diferencia de RAG/ruteo) y queda
+  totalmente contenida en `geminiClient.ts`, sin tocar `messageOrchestrator.ts`, la clasificación de
+  irreversibles (4.3) ni la confirmación (5.14). Se agregó `cachedTokens` a la auditoría de 8.7
+  (migración `0004`) para poder verificar en producción, con datos reales, que el caching efectivamente
+  reduce el costo.
+- **Made by:** dev (pedido explícito del usuario: "si procede", tras research conjunta de
+  estrategias de la industria para reducir tokens de tool-calling con catálogos grandes)
+
+---
+
 ### 2026-09-13 — Bug de producción corregido: "no pude terminar tu pedido" pese a que la acción ya se había ejecutado
 - **Decision:** al agotar `MAX_RONDAS_TOOL_CALL` (4) sin que Gemini devuelva una respuesta de
   texto, `ejecutarRondas` ya no corta directo con el mensaje de fallback genérico -- fuerza UNA

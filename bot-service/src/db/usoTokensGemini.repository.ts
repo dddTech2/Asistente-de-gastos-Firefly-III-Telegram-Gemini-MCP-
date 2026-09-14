@@ -16,6 +16,7 @@ export interface ResumenUsoTokens {
   candidatesTokens: number;
   thoughtsTokens: number;
   toolTokens: number;
+  cachedTokens: number;
   totalTokens: number;
 }
 
@@ -25,6 +26,7 @@ interface ResumenRow {
   candidates_tokens: string | null;
   thoughts_tokens: string | null;
   tool_tokens: string | null;
+  cached_tokens: string | null;
   total_tokens: string | null;
 }
 
@@ -35,6 +37,7 @@ const SELECT_RESUMEN = `
     COALESCE(SUM(candidates_tokens), 0) AS candidates_tokens,
     COALESCE(SUM(thoughts_tokens), 0) AS thoughts_tokens,
     COALESCE(SUM(tool_tokens), 0) AS tool_tokens,
+    COALESCE(SUM(cached_tokens), 0) AS cached_tokens,
     COALESCE(SUM(total_tokens), 0) AS total_tokens
   FROM log_uso_tokens_gemini
 `;
@@ -46,25 +49,36 @@ function filaAResumen(fila: ResumenRow | undefined): ResumenUsoTokens {
     candidatesTokens: Number(fila?.candidates_tokens ?? 0),
     thoughtsTokens: Number(fila?.thoughts_tokens ?? 0),
     toolTokens: Number(fila?.tool_tokens ?? 0),
+    cachedTokens: Number(fila?.cached_tokens ?? 0),
     totalTokens: Number(fila?.total_tokens ?? 0),
   };
 }
 
 /**
  * Historia 8.7: persiste el consumo de tokens de cada llamada real a Gemini
- * (`chat_id` + los 5 contadores de `usoTokens.ts`) y expone los dos resúmenes
+ * (`chat_id` + los contadores de `usoTokens.ts`) y expone los dos resúmenes
  * agregados que pide el AC #4 -- por chat_id + rango, y por rango solo (para
  * el agregado mensual de todas las conversaciones). Sin purga: registro de
  * auditoría de largo plazo, igual criterio que `log_auditoria_ia` (8.2).
+ * `cachedTokens` (migración 0004) permite auditar si el caching de tools de
+ * `geminiClient.ts` está efectivamente funcionando.
  */
 export function createUsoTokensGeminiRepository(db: QueryableDb) {
   return {
     async registrar(chatId: number, uso: UsoTokensGemini): Promise<void> {
       await db.query(
         `INSERT INTO log_uso_tokens_gemini
-           (chat_id, prompt_tokens, candidates_tokens, thoughts_tokens, tool_tokens, total_tokens)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [chatId, uso.promptTokens, uso.candidatesTokens, uso.thoughtsTokens, uso.toolTokens, uso.totalTokens],
+           (chat_id, prompt_tokens, candidates_tokens, thoughts_tokens, tool_tokens, cached_tokens, total_tokens)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          chatId,
+          uso.promptTokens,
+          uso.candidatesTokens,
+          uso.thoughtsTokens,
+          uso.toolTokens,
+          uso.cachedTokens,
+          uso.totalTokens,
+        ],
       );
     },
 

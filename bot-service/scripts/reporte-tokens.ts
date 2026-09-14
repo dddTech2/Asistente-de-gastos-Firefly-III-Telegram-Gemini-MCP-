@@ -48,6 +48,7 @@ function imprimirResumen(titulo: string, resumen: ResumenUsoTokens): void {
   console.log(`  Tokens de salida (candidates):     ${resumen.candidatesTokens}`);
   console.log(`  Tokens de "thinking":              ${resumen.thoughtsTokens}`);
   console.log(`  Tokens de resultados de tools:     ${resumen.toolTokens}`);
+  console.log(`  Tokens servidos desde el cache:    ${resumen.cachedTokens}`);
   console.log(`  Total:                             ${resumen.totalTokens}`);
 }
 

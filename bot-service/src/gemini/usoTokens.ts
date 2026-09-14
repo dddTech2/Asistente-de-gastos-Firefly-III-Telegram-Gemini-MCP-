@@ -5,6 +5,8 @@ export interface UsoTokensGemini {
   candidatesTokens: number;
   thoughtsTokens: number;
   toolTokens: number;
+  /** Tokens de `promptTokens` que vinieron del cache de tools (ver `geminiClient.ts`), no del catálogo completo -- prueba directa de que el caching está funcionando. */
+  cachedTokens: number;
   totalTokens: number;
 }
 
@@ -27,6 +29,7 @@ export function extraerUsoTokens(respuesta: GenerateContentResponse): UsoTokensG
     candidatesTokens: meta.candidatesTokenCount ?? 0,
     thoughtsTokens: meta.thoughtsTokenCount ?? 0,
     toolTokens: meta.toolUsePromptTokenCount ?? 0,
+    cachedTokens: meta.cachedContentTokenCount ?? 0,
     totalTokens: meta.totalTokenCount ?? 0,
   };
 }

@@ -442,6 +442,7 @@ describe("auditoría de tokens de Gemini (historia 8.7)", () => {
       candidatesTokens: 20,
       thoughtsTokens: 0,
       toolTokens: 0,
+      cachedTokens: 0,
       totalTokens: 120,
     });
     expect(registrarUsoTokens).toHaveBeenNthCalledWith(2, CHAT_ID, {
@@ -449,6 +450,7 @@ describe("auditoría de tokens de Gemini (historia 8.7)", () => {
       candidatesTokens: 30,
       thoughtsTokens: 0,
       toolTokens: 0,
+      cachedTokens: 0,
       totalTokens: 180,
     });
   });

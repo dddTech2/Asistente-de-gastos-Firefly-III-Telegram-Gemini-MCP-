@@ -11,13 +11,14 @@ describe("extraerUsoTokens (historia 8.7)", () => {
     expect(extraerUsoTokens(respuesta(undefined))).toBeUndefined();
   });
 
-  it("mapea los 5 campos de usageMetadata a la forma persistida", () => {
+  it("mapea los 6 campos de usageMetadata a la forma persistida", () => {
     const uso = extraerUsoTokens(
       respuesta({
         promptTokenCount: 120,
         candidatesTokenCount: 40,
         thoughtsTokenCount: 15,
         toolUsePromptTokenCount: 8,
+        cachedContentTokenCount: 95,
         totalTokenCount: 183,
       }),
     );
@@ -27,6 +28,7 @@ describe("extraerUsoTokens (historia 8.7)", () => {
       candidatesTokens: 40,
       thoughtsTokens: 15,
       toolTokens: 8,
+      cachedTokens: 95,
       totalTokens: 183,
     });
   });
@@ -39,6 +41,7 @@ describe("extraerUsoTokens (historia 8.7)", () => {
       candidatesTokens: 0,
       thoughtsTokens: 0,
       toolTokens: 0,
+      cachedTokens: 0,
       totalTokens: 0,
     });
   });
@@ -49,6 +52,7 @@ describe("extraerUsoTokens (historia 8.7)", () => {
       candidatesTokens: 0,
       thoughtsTokens: 0,
       toolTokens: 0,
+      cachedTokens: 0,
       totalTokens: 0,
     });
   });

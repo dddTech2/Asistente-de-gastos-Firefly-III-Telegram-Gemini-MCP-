@@ -12,11 +12,12 @@ const USO_EJEMPLO = {
   candidatesTokens: 30,
   thoughtsTokens: 10,
   toolTokens: 5,
+  cachedTokens: 60,
   totalTokens: 145,
 };
 
 describe("createUsoTokensGeminiRepository.registrar", () => {
-  it("inserta los 6 parámetros correctos, en orden (AC #1)", async () => {
+  it("inserta los 7 parámetros correctos, en orden (AC #1)", async () => {
     const db = buildDb([]);
     const repo = createUsoTokensGeminiRepository(db);
 
@@ -28,6 +29,7 @@ describe("createUsoTokensGeminiRepository.registrar", () => {
       30,
       10,
       5,
+      60,
       145,
     ]);
   });
@@ -53,6 +55,7 @@ describe("createUsoTokensGeminiRepository.resumenPorChat", () => {
         candidates_tokens: "90",
         thoughts_tokens: "20",
         tool_tokens: "15",
+        cached_tokens: "180",
         total_tokens: "425",
       },
     ]);
@@ -66,6 +69,7 @@ describe("createUsoTokensGeminiRepository.resumenPorChat", () => {
       candidatesTokens: 90,
       thoughtsTokens: 20,
       toolTokens: 15,
+      cachedTokens: 180,
       totalTokens: 425,
     });
   });
@@ -82,6 +86,7 @@ describe("createUsoTokensGeminiRepository.resumenPorChat", () => {
       candidatesTokens: 0,
       thoughtsTokens: 0,
       toolTokens: 0,
+      cachedTokens: 0,
       totalTokens: 0,
     });
   });
