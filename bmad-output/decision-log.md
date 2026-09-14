@@ -19,6 +19,25 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-13 — Bug de producción corregido: "no pude terminar tu pedido" pese a que la acción ya se había ejecutado
+- **Decision:** al agotar `MAX_RONDAS_TOOL_CALL` (4) sin que Gemini devuelva una respuesta de
+  texto, `ejecutarRondas` ya no corta directo con el mensaje de fallback genérico -- fuerza UNA
+  llamada extra a Gemini con `tools: []` (no puede pedir otra tool call sin tools declaradas) para
+  que resuma en texto real lo que ya pasó, usando los resultados de tool acumulados en `contents`.
+- **Rationale:** el usuario reportó (con logs de producción) que el bot dijo "no pude terminar de
+  procesar tu pedido" después de una secuencia de 4 tool calls donde la ÚLTIMA (`create_transaction`)
+  tuvo éxito -- el gasto quedó registrado en Firefly III, pero el usuario recibió un mensaje que
+  sugería lo contrario. Riesgo real: si el usuario le cree al mensaje y reintenta, duplica el gasto.
+  Causa: el tope de rondas se agotaba en una tool call exitosa sin dejar una ronda más para que
+  Gemini lo confirmara en texto. La llamada final forzada sin tools es estrictamente acotada (no
+  puede volver a pedir una tool call, así que nunca alarga el ciclo más de 1 llamada extra) y
+  además mejora los casos de fallo genuino: si ninguna tool tuvo éxito, Gemini igual puede explicar
+  en lenguaje natural qué faltó, en vez de un mensaje canónico sin contexto.
+- **Made by:** dev (bug reportado en logs de producción por el usuario, con pedido explícito
+  "arreglemos el bug")
+
+---
+
 ### 2026-09-13 — Nueva historia 8.7 agregada y cerrada: auditoría de tokens de Gemini por conversación y por mes
 - **Decision:** se agrega `8.7.auditoria-tokens-gemini` a Épica 8, se implementa y se cierra en la
   misma sesión, a pedido explícito del usuario. Tabla nueva `log_uso_tokens_gemini` en Postgres

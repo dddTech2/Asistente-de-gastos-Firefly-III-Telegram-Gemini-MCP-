@@ -255,7 +255,7 @@ describe("messageOrchestrator", () => {
     expect(resultado).toBe("listo");
   });
 
-  it("corta después de un tope de rondas si Gemini nunca deja de pedir tools (guarda anti-loop)", async () => {
+  it("al agotar las rondas, fuerza UNA llamada final sin tools en vez de cortar directo (guarda anti-loop)", async () => {
     const { deps, generarRespuesta, ejecutarTool } = buildDeps();
     generarRespuesta.mockResolvedValue(respuestaConFunctionCall("get_accounts", {}));
     ejecutarTool.mockResolvedValue({ contenido: "ok", esError: false });
@@ -265,7 +265,45 @@ describe("messageOrchestrator", () => {
 
     expect(typeof resultado).toBe("string");
     expect(resultado!.length).toBeGreaterThan(0);
-    expect(generarRespuesta.mock.calls.length).toBeLessThanOrEqual(4);
+    // 4 rondas de tool-calling (tope) + 1 llamada final forzada sin tools.
+    expect(generarRespuesta).toHaveBeenCalledTimes(5);
+    const ultimaLlamada = generarRespuesta.mock.calls[4]![0] as { tools: unknown[] };
+    expect(ultimaLlamada.tools).toEqual([]);
+  });
+
+  it("si la última ronda permitida ejecuta la tool con éxito, confirma en texto real en vez del fallback genérico (bug real de producción)", async () => {
+    const { deps, generarRespuesta, ejecutarTool } = buildDeps();
+    generarRespuesta
+      .mockResolvedValueOnce(respuestaConFunctionCall("create_transaction", { amount: "300000" }))
+      .mockResolvedValueOnce(respuestaConFunctionCall("create_transaction", { amount: "300000", type: "withdrawal" }))
+      .mockResolvedValueOnce(respuestaConFunctionCall("get_accounts", { type: "asset" }))
+      .mockResolvedValueOnce(
+        respuestaConFunctionCall("create_transaction", { amount: "300000", type: "withdrawal", source_id: "1" }),
+      )
+      .mockResolvedValueOnce(respuestaTexto("Listo, registré el gasto de 300.000 en cumpleaños de mamá."));
+    ejecutarTool
+      .mockResolvedValueOnce({ contenido: "falta type", esError: true })
+      .mockResolvedValueOnce({ contenido: "falta source_id", esError: true })
+      .mockResolvedValueOnce({ contenido: '{"data":[{"id":"1"}]}', esError: false })
+      .mockResolvedValueOnce({ contenido: "ok", esError: false });
+
+    const orquestador = createMessageOrchestrator(deps);
+    const resultado = await orquestador.procesarMensaje(CHAT_ID, "gasté 300000 en cumpleaños de mamá");
+
+    expect(resultado).toBe("Listo, registré el gasto de 300.000 en cumpleaños de mamá.");
+    expect(ejecutarTool).toHaveBeenCalledTimes(4);
+    expect(generarRespuesta).toHaveBeenCalledTimes(5);
+  });
+
+  it("si incluso la llamada final forzada no devuelve texto, usa el mensaje de fallback (no revienta)", async () => {
+    const { deps, generarRespuesta, ejecutarTool } = buildDeps();
+    generarRespuesta.mockResolvedValue(respuestaConFunctionCall("get_accounts", {}));
+    ejecutarTool.mockResolvedValue({ contenido: "ok", esError: false });
+
+    const orquestador = createMessageOrchestrator(deps);
+    const resultado = await orquestador.procesarMensaje(CHAT_ID, "hola");
+
+    expect(resultado).toBe("No pude terminar de procesar tu pedido. Intentá reformularlo o probá de nuevo en un momento.");
   });
 });
 

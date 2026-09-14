@@ -57,6 +57,17 @@ const MENSAJE_SIN_RESPUESTA_FINAL =
  * usuario. Es una guarda de seguridad (fail-safe ante un ciclo de tool calls
  * que nunca converge a una respuesta de texto), no una funcionalidad pedida
  * por ningún AC -- el valor es deliberadamente chico. [Inference]
+ *
+ * Bug real de producción corregido: si la ronda `MAX_RONDAS_TOOL_CALL` (la
+ * última permitida) también terminaba en una tool call -- incluso si esa tool
+ * call tuvo ÉXITO, ej. el gasto sí quedó registrado en Firefly III -- el ciclo
+ * cortaba sin darle a Gemini una ronda más para confirmarlo en texto, y el
+ * usuario recibía el mensaje genérico de fallback pese a que la acción ya se
+ * había ejecutado (riesgo real de que el usuario reintente y duplique el
+ * gasto). Por eso, al agotar las rondas, `ejecutarRondas` ya no devuelve
+ * `undefined` directo: fuerza UNA llamada extra a Gemini sin `tools` (no puede
+ * pedir otra tool call sin tools declaradas) para que resuma en texto, con los
+ * resultados de tool ya acumulados en `contents`, lo que efectivamente pasó.
  */
 const MAX_RONDAS_TOOL_CALL = 4;
 
@@ -258,7 +269,13 @@ export function createMessageOrchestrator(deps: MessageOrchestratorDeps): Messag
       contents = agregarResultadoTool(contents, contenidoModeloParaHistorial, nombreTool, resultado);
     }
 
-    return undefined;
+    logger.warn(
+      { chat_id: chatId },
+      "Se agotaron las rondas de tool-calling; se fuerza una respuesta final en texto (sin tools) en vez del fallback genérico",
+    );
+    const respuestaFinal = await deps.geminiClient.generarRespuesta({ systemInstruction, contents, tools: [] });
+    await registrarUsoTokensSeguro(deps.registrarUsoTokens, chatId, respuestaFinal);
+    return respuestaFinal.text;
   }
 
   return {
